@@ -20,8 +20,8 @@ export const SYSTEM_ROLES: Record<string, { name: string; perms: string[] | 'all
   },
   housekeeping: { name: 'Сотрудник уборки', perms: ['inventory.read', 'calendar.read'] },
   maintenance: { name: 'Сотрудник технической службы', perms: ['inventory.read', 'calendar.read'] },
-  restaurant: { name: 'Сотрудник ресторана', perms: ['calendar.read'] },
-  rental: { name: 'Сотрудник проката', perms: ['calendar.read'] },
+  restaurant: { name: 'Сотрудник ресторана', perms: ['calendar.read', 'restaurant.manage', 'kitchen.manage'] },
+  rental: { name: 'Сотрудник проката', perms: ['calendar.read', 'rental.manage'] },
   accountant: { name: 'Бухгалтер', perms: ['booking.read', 'payment.read', 'reports.read'] },
   marketing: { name: 'Маркетолог', perms: ['rates.read', 'reports.read'] },
   guest_relations: {
