@@ -1,7 +1,7 @@
 import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { createHash, randomBytes } from 'node:crypto';
 import { z } from 'zod';
-import { cancellationPenaltyMinor, type CancellationTier } from '../../../../packages/domain/src';
+import { cancellationOutcome, cancellationPenaltyMinor, depositApplies, seasonOf, type CancellationTier, type DepositPolicy } from '../../../../packages/domain/src';
 import { setActor, type Database } from '../../../../packages/db/src';
 import { AvailabilityService } from '../bookings/availability.service';
 import { BookingsService } from '../bookings/bookings.service';
@@ -14,6 +14,13 @@ import type { OffersQuery, PublicBookingBody } from './public.schemas';
 /** Версия текста согласия на обработку ПДн. Меняется вместе с текстом на сайте. */
 export const PD_CONSENT_VERSION = 'pd-2026-10';
 export const MARKETING_CONSENT_VERSION = 'marketing-2026-10';
+
+/** Сезонный депозит для показа гостю: действует ли он для этой даты заезда и с какого срока. */
+function depositRule(policy: unknown, arrival: string) {
+  const p = policy as DepositPolicy | null;
+  const season = p ? seasonOf(p.seasons, arrival) : null;
+  return p && season ? { season: season.name, daysBefore: p.days_before } : null;
+}
 
 const hashToken = (t: string) => createHash('sha256').update(t).digest();
 
@@ -50,7 +57,7 @@ export class PublicService {
     const found = await this.availability.search(p.id, { arrival: q.arrival, departure: q.departure, adults: q.adults, children: q.children.length, publicOnly: true });
     const plans = await this.db
       .selectFrom('rate_plan')
-      .select(['id', 'cancellation_policy', 'prepayment_policy', 'meal_plan', 'is_refundable'])
+      .select(['id', 'cancellation_policy', 'prepayment_policy', 'deposit_policy', 'meal_plan', 'is_refundable'])
       .where('property_id', '=', p.id)
       .execute();
     const planById = new Map(plans.map((x) => [x.id, x]));
@@ -68,6 +75,7 @@ export class PublicService {
               totalMinor: o.totalMinor,
               prepaymentDueMinor: o.prepaymentDueMinor,
               cancellationPolicy: plan.is_refundable ? (plan.cancellation_policy as unknown as CancellationTier[]) : null,
+              depositRule: plan.is_refundable ? depositRule(plan.deposit_policy, q.arrival) : null,
             };
           });
         const { id, name, kind, area_m2, max_occupancy, amenities, photos, description } = t.accommodationType;
@@ -185,15 +193,17 @@ export class PublicService {
       .select([
         'b.id', 'b.number', 'b.status', 'b.payment_state', 'b.arrival', 'b.departure', 'b.adults', 'b.children_ages', 'b.total_minor',
         'b.prepayment_due_minor', 'b.hold_expires_at', 'b.special_requests', 'g.last_name', 'g.first_name', 't.name as type_name',
-        'rp.name as rate_plan_name', 'rp.cancellation_policy', 'rp.is_refundable', 'p.name as property_name', 'p.timezone',
+        'rp.name as rate_plan_name', 'rp.cancellation_policy', 'rp.deposit_policy', 'rp.is_refundable', 'p.name as property_name', 'p.timezone',
         'p.check_in_time', 'p.check_out_time',
       ])
       .where('b.id', '=', ref.id)
       .executeTakeFirstOrThrow();
     const paid = await this.payments.paidMinor(this.db, b.id);
+    const kept = await this.db.selectFrom('guest_deposit').select(['balance_minor', 'season']).where('source_booking_id', '=', b.id).executeTakeFirst();
     const { today } = await this.availability.propertyToday(ref.property_id);
     const cancellable = ['pending_payment', 'confirmed', 'pending_confirmation'].includes(b.status) && today <= b.arrival;
     const penalty = cancellable ? await this.penalty(b, today) : null;
+    const deposit = cancellable && b.status !== 'pending_payment' && b.is_refundable !== false && depositApplies(b.deposit_policy as DepositPolicy | null, b.arrival, today);
     return {
       number: b.number,
       status: b.status,
@@ -209,12 +219,14 @@ export class PublicService {
       accommodation: b.type_name,
       ratePlan: b.rate_plan_name,
       cancellationPolicy: b.is_refundable ? b.cancellation_policy : null,
+      depositRule: b.is_refundable ? depositRule(b.deposit_policy, b.arrival) : null,
       totalMinor: b.total_minor,
       prepaymentDueMinor: b.prepayment_due_minor,
       paidMinor: paid,
       holdExpiresAt: b.hold_expires_at,
       canPay: b.status === 'pending_payment' && !!b.hold_expires_at && new Date(b.hold_expires_at) > new Date(),
-      cancellation: cancellable ? { penaltyMinor: penalty!, refundMinor: Math.max(0, paid - penalty!) } : null,
+      cancellation: cancellable ? cancellationOutcome(penalty!, paid, deposit) : null,
+      depositMinor: kept ? Number(kept.balance_minor) : 0,
     };
   }
 
@@ -256,7 +268,7 @@ export class PublicService {
         .selectFrom('booking as b')
         .innerJoin('booking_stay as s', 's.booking_id', 'b.id')
         .leftJoin('rate_plan as rp', 'rp.id', 's.rate_plan_id')
-        .select(['b.id', 'b.status', 'b.arrival', 'b.total_minor', 'b.property_id', 'rp.cancellation_policy', 'rp.is_refundable'])
+        .select(['b.id', 'b.status', 'b.arrival', 'b.total_minor', 'b.property_id', 'b.booker_guest_id', 'rp.cancellation_policy', 'rp.deposit_policy', 'rp.is_refundable'])
         .where('b.id', '=', ref.id)
         .forUpdate(['b'])
         .executeTakeFirstOrThrow();
@@ -266,12 +278,28 @@ export class PublicService {
       }
       const penalty = await this.penalty(b, today, trx);
       const paid = await this.payments.paidMinor(trx, b.id);
+      const policy = b.deposit_policy as DepositPolicy | null;
+      const deposit = b.status !== 'pending_payment' && b.is_refundable !== false && depositApplies(policy, b.arrival, today);
+      const outcome = cancellationOutcome(penalty, paid, deposit);
       await trx.updateTable('booking').set({ status: 'cancelled', hold_expires_at: null }).where('id', '=', b.id).execute();
+      if (outcome.depositMinor > 0) {
+        await trx
+          .insertInto('guest_deposit')
+          .values({
+            property_id: b.property_id,
+            guest_id: b.booker_guest_id,
+            source_booking_id: b.id,
+            amount_minor: outcome.depositMinor,
+            balance_minor: outcome.depositMinor,
+            season: seasonOf(policy!.seasons, b.arrival)!.name,
+          })
+          .execute();
+      }
       await this.audit.write(
-        { propertyId: b.property_id, actorType: 'guest', actorId: null, action: 'booking.cancel_by_guest', entity: 'booking', entityId: b.id, after: { penaltyMinor: penalty, paidMinor: paid }, ip },
+        { propertyId: b.property_id, actorType: 'guest', actorId: null, action: 'booking.cancel_by_guest', entity: 'booking', entityId: b.id, after: { ...outcome, paidMinor: paid }, ip },
         trx,
       );
-      return { bookingId: b.id, refundMinor: Math.max(0, paid - penalty) };
+      return { bookingId: b.id, refundMinor: outcome.refundMinor };
     });
 
     await this.payments.cancelPending(result.bookingId);

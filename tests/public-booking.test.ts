@@ -200,7 +200,7 @@ describe('отмена гостем', () => {
     const r = await http.post(`${P}/bookings`).send(body({ arrival: d(70), departure: d(72) }));
     await payOnPage(r.body.confirmationUrl, 'succeeded');
     const info = await http.get(`${P}/bookings/${r.body.manageToken}`);
-    expect(info.body.cancellation).toEqual({ penaltyMinor: 0, refundMinor: 300_000 });
+    expect(info.body.cancellation).toEqual({ penaltyMinor: 0, refundMinor: 300_000, depositMinor: 0 });
     const c = await http.post(`${P}/bookings/${r.body.manageToken}/cancel`);
     expect(c.status).toBe(200);
     expect(c.body).toMatchObject({ status: 'cancelled', paidMinor: 0, paymentState: 'refunded' });
@@ -217,7 +217,7 @@ describe('отмена гостем', () => {
       await trx.updateTable('booking').set({ arrival: today, departure: addDays(today, 2) }).where('id', '=', b.id).execute();
     });
     const info = await http.get(`${P}/bookings/${r.body.manageToken}`);
-    expect(info.body.cancellation).toEqual({ penaltyMinor: 500_000, refundMinor: 0 });
+    expect(info.body.cancellation).toEqual({ penaltyMinor: 500_000, refundMinor: 0, depositMinor: 0 });
     const c = await http.post(`${P}/bookings/${r.body.manageToken}/cancel`);
     expect(c.body).toMatchObject({ status: 'cancelled', paidMinor: 300_000 });
   });

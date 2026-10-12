@@ -14,6 +14,7 @@ interface Booking {
   history: { id: number; from_status: string | null; to_status: string; changed_at: string; reason: string | null; source: string }[];
   allowed_transitions: string[];
   registration: Registration;
+  deposit: { amount_minor: number; balance_minor: number; season: string; created_at: string } | null;
 }
 interface Registration {
   guestsSubmittedAt: string | null; rulesVersion: string | null; rulesAcceptedAt: string | null;
@@ -152,6 +153,12 @@ export default function BookingPage() {
           <div className="row"><span className="muted">Стоимость</span><b style={{ marginLeft: 'auto' }}>{rub(b.total_minor)}</b></div>
           <div className="row"><span className="muted">Оплачено</span><span style={{ marginLeft: 'auto' }}>{rub(b.paid_minor)}</span></div>
           <div className="row"><span className="muted">Остаток</span><b style={{ marginLeft: 'auto', color: b.balance_minor > 0 ? 'var(--bad)' : undefined }}>{rub(b.balance_minor)}</b></div>
+          {b.deposit && (
+            <div className="row">
+              <span className="muted">На депозите гостя ({b.deposit.season.toLowerCase()})</span>
+              <b style={{ marginLeft: 'auto' }}>{rub(b.deposit.balance_minor)}{b.deposit.balance_minor < b.deposit.amount_minor && ` из ${rub(b.deposit.amount_minor)}`}</b>
+            </div>
+          )}
           {b.prepayment_due_minor > 0 && <div className="row"><span className="muted">Предоплата по тарифу</span><span style={{ marginLeft: 'auto' }}>{rub(b.prepayment_due_minor)}</span></div>}
           {payments.length > 0 && (
             <table className="list" style={{ border: 0, marginTop: 6 }}>

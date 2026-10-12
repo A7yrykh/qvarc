@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Put, Query } from '@nestjs/common';
 import { parse } from '../common/validation';
 import { ClientIp, CurrentUser, RequirePerms, type StaffUser } from '../iam/auth.decorators';
-import { BlockBody, RatePlanBody, RateRuleBody, TypeBody, UnitBody } from './inventory.schemas';
+import { BlockBody, RatePlanBody, RatePlanTermsBody, RateRuleBody, TypeBody, UnitBody } from './inventory.schemas';
 import { InventoryService } from './inventory.service';
 import { RateGridService } from './rate-grid.service';
 import { z } from 'zod';
@@ -78,6 +78,12 @@ export class InventoryController {
   @RequirePerms('rates.write')
   createRatePlan(@Body() b: unknown, @CurrentUser() user: StaffUser, @ClientIp() ip: string | null) {
     return this.inv.createRatePlan({ user, ip }, parse(RatePlanBody, b));
+  }
+
+  @Put('rate-plans/:id/terms')
+  @RequirePerms('rates.write')
+  updateRatePlanTerms(@Param('id', ParseUUIDPipe) id: string, @Body() b: unknown, @CurrentUser() user: StaffUser, @ClientIp() ip: string | null) {
+    return this.inv.updateRatePlanTerms({ user, ip }, id, parse(RatePlanTermsBody, b));
   }
 
   @Get('rate-rules')

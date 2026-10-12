@@ -200,7 +200,7 @@
     "mealPlan": "breakfast",
     "cancellationPolicy": [
       {
-        "days_before": 1,
+        "days_before": 3,
         "penalty_pct": 0
       },
       {
@@ -212,6 +212,21 @@
     "prepaymentPolicy": {
       "pct": 30,
       "due": "at_booking"
+    },
+    "depositPolicy": {
+      "days_before": 14,
+      "seasons": [
+        {
+          "name": "Летний сезон",
+          "from": "06-01",
+          "to": "08-31"
+        },
+        {
+          "name": "Новогодние праздники",
+          "from": "12-25",
+          "to": "01-10"
+        }
+      ]
     }
   }
 }

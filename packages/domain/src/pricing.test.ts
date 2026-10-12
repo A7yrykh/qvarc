@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { nightsBetween, todayIn } from './dates';
-import { cancellationPenaltyMinor, prepaymentMinor, validateCancellationPolicy } from './policies';
+import { cancellationOutcome, cancellationPenaltyMinor, depositApplies, prepaymentMinor, seasonOf, validateCancellationPolicy, validateDepositPolicy } from './policies';
 import { quote, RateRuleInput } from './pricing';
 
 const cap = { baseOccupancy: 2, maxAdults: 3, maxChildren: 2, maxOccupancy: 4 };
@@ -128,3 +128,32 @@ describe('удержание стоимостью первой ночи', () => 
   });
 });
 
+
+describe('сезонный депозит по оферте', () => {
+  const policy = validateDepositPolicy({
+    days_before: 14,
+    seasons: [
+      { name: 'Летний сезон', from: '06-01', to: '08-31' },
+      { name: 'Новогодние праздники', from: '12-25', to: '01-10' },
+    ],
+  });
+  it('сезон определяется по дате заезда, в том числе через Новый год', () => {
+    expect(seasonOf(policy.seasons, '2027-07-15')?.name).toBe('Летний сезон');
+    expect(seasonOf(policy.seasons, '2027-12-31')?.name).toBe('Новогодние праздники');
+    expect(seasonOf(policy.seasons, '2028-01-05')?.name).toBe('Новогодние праздники');
+    expect(seasonOf(policy.seasons, '2027-10-01')).toBeNull();
+  });
+  it('депозит только при отмене меньше чем за 2 недели в сезон', () => {
+    expect(depositApplies(policy, '2027-07-20', '2027-07-06')).toBe(false); // ровно 14 дней
+    expect(depositApplies(policy, '2027-07-20', '2027-07-07')).toBe(true);
+    expect(depositApplies(policy, '2027-10-20', '2027-10-19')).toBe(false);
+    expect(depositApplies(null, '2027-07-20', '2027-07-19')).toBe(false);
+  });
+  it('при депозите оплата остаётся гостю на депозите, на карту не возвращается', () => {
+    expect(cancellationOutcome(500_000, 900_000, true)).toEqual({ penaltyMinor: 0, refundMinor: 0, depositMinor: 900_000 });
+    expect(cancellationOutcome(500_000, 900_000, false)).toEqual({ penaltyMinor: 500_000, refundMinor: 400_000, depositMinor: 0 });
+  });
+  it('неверные даты сезона отклоняются', () => {
+    expect(() => validateDepositPolicy({ days_before: 14, seasons: [{ name: 'x', from: '6-1', to: '08-31' }] })).toThrow();
+  });
+});

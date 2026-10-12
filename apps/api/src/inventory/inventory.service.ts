@@ -1,7 +1,7 @@
 import { Inject, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { sql } from 'kysely';
 import { z } from 'zod';
-import { toDateRange, validateCancellationPolicy } from '../../../../packages/domain/src';
+import { toDateRange, validateCancellationPolicy, validateDepositPolicy } from '../../../../packages/domain/src';
 import type { Database } from '../../../../packages/db/src';
 import { AuditService } from '../common/audit.service';
 import { DB } from '../common/tokens';
@@ -195,6 +195,7 @@ export class InventoryService {
   async createRatePlan(a: Actor, input: z.infer<typeof RatePlanBody>) {
     try {
       validateCancellationPolicy(input.cancellationPolicy);
+      if (input.depositPolicy) validateDepositPolicy(input.depositPolicy);
     } catch (e) {
       throw new UnprocessableEntityException((e as Error).message);
     }
@@ -210,6 +211,7 @@ export class InventoryService {
           is_refundable: input.isRefundable,
           cancellation_policy: JSON.stringify(input.cancellationPolicy),
           prepayment_policy: JSON.stringify(input.prepaymentPolicy),
+          deposit_policy: input.depositPolicy ? JSON.stringify(input.depositPolicy) : null,
           is_public: input.isPublic,
           is_active: input.isActive,
         })
@@ -221,6 +223,31 @@ export class InventoryService {
         .execute();
       await this.log(a, 'rates.plan.create', 'rate_plan', row.id, input, trx);
       return { ...row, accommodation_type_ids: input.accommodationTypeIds };
+    });
+  }
+
+  /** Условия отмены, предоплаты и депозита тарифа. Уже созданные брони считаются по новым условиям тарифа. */
+  async updateRatePlanTerms(a: Actor, planId: string, input: Pick<z.infer<typeof RatePlanBody>, 'cancellationPolicy' | 'prepaymentPolicy' | 'depositPolicy'>) {
+    try {
+      validateCancellationPolicy(input.cancellationPolicy);
+      if (input.depositPolicy) validateDepositPolicy(input.depositPolicy);
+    } catch (e) {
+      throw new UnprocessableEntityException((e as Error).message);
+    }
+    return this.db.transaction().execute(async (trx) => {
+      await this.assertRatePlan(a.user.propertyId, planId, trx);
+      const row = await trx
+        .updateTable('rate_plan')
+        .set({
+          cancellation_policy: JSON.stringify(input.cancellationPolicy),
+          prepayment_policy: JSON.stringify(input.prepaymentPolicy),
+          deposit_policy: input.depositPolicy ? JSON.stringify(input.depositPolicy) : null,
+        })
+        .where('id', '=', planId)
+        .returningAll()
+        .executeTakeFirstOrThrow();
+      await this.log(a, 'rates.plan.terms', 'rate_plan', planId, input, trx);
+      return row;
     });
   }
 

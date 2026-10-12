@@ -47,7 +47,7 @@ export class BookingsController {
   async get(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() u: StaffUser) {
     const b = await this.bookings.get(u, id);
     // Онлайн-регистрация из приложения: состав гостей и документы (только тип и последние цифры)
-    return { ...b, registration: await this.checkin.summary(id) };
+    return { ...b, registration: await this.checkin.summary(id), deposit: await this.bookings.depositFrom(id) };
   }
 
   @Post('bookings')

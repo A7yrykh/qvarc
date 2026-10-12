@@ -53,7 +53,10 @@ export async function importRooms(db: Database, propertyCode: string, data: unkn
   if (file.ratePlan) {
     const plan = RatePlanBody.parse({ ...file.ratePlan, accommodationTypeIds: typeIds });
     const existing = await db.selectFrom('rate_plan').select('id').where('property_id', '=', property.id).where('code', '=', plan.code).executeTakeFirst();
-    if (existing) report.push(`тариф «${plan.name}» уже есть, не менялся`);
+    if (existing) {
+      await inv.updateRatePlanTerms(actor, existing.id, plan);
+      report.push(`тариф «${plan.name}» уже есть, условия отмены и оплаты обновлены`);
+    }
     else {
       await inv.createRatePlan(actor, plan);
       report.push(`тариф «${plan.name}» создан, цены задаются в «Ценах и ограничениях»`);

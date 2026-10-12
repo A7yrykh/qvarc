@@ -416,6 +416,17 @@ export interface GuestConsent {
   text_version: string;
 }
 
+export interface GuestDeposit {
+  amount_minor: number;
+  balance_minor: number;
+  created_at: Generated<Timestamp>;
+  guest_id: string;
+  id: Generated<string>;
+  property_id: string;
+  season: string;
+  source_booking_id: string;
+}
+
 export interface GuestDocument {
   created_at: Generated<Timestamp>;
   created_by: string | null;
@@ -699,6 +710,7 @@ export interface Property {
 export interface RatePlan {
   cancellation_policy: Json;
   code: string;
+  deposit_policy: Json | null;
   id: Generated<string>;
   included_services: Generated<string[]>;
   is_active: Generated<boolean>;
@@ -918,6 +930,7 @@ export interface DB {
   guest_account: GuestAccount;
   guest_app_session: GuestAppSession;
   guest_consent: GuestConsent;
+  guest_deposit: GuestDeposit;
   guest_document: GuestDocument;
   guest_merge_log: GuestMergeLog;
   guest_note: GuestNote;

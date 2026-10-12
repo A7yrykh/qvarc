@@ -6,7 +6,7 @@ import { can, useMe } from '@/components/Shell';
 interface Tier { days_before: number; penalty_pct: number; penalty_nights?: number }
 interface Plan {
   id: string; code: string; name: string; meal_plan: string; is_refundable: boolean; is_public: boolean; is_active: boolean;
-  cancellation_policy: Tier[]; prepayment_policy: { pct: number; due: string; days?: number }; accommodation_type_ids: string[];
+  cancellation_policy: Tier[]; prepayment_policy: { pct: number; due: string; days?: number }; deposit_policy: { days_before: number; seasons: { name: string; from: string; to: string }[] } | null; accommodation_type_ids: string[];
 }
 interface Type { id: string; name: string }
 
@@ -74,7 +74,14 @@ export default function RatesPage() {
             <tr key={p.id} style={p.is_active ? undefined : { opacity: 0.55 }}>
               <td>{p.name}<div className="muted" style={{ fontSize: 12 }}>{p.code}{p.is_public ? '' : ', только для администратора'}</div></td>
               <td>{MEAL[p.meal_plan] ?? p.meal_plan}</td>
-              <td>{p.is_refundable ? policyText(p.cancellation_policy) : 'невозвратный'}</td>
+              <td>
+                {p.is_refundable ? policyText(p.cancellation_policy) : 'невозвратный'}
+                {p.is_refundable && p.deposit_policy && (
+                  <div className="muted small">
+                    Депозит при отмене менее чем за {p.deposit_policy.days_before} дн.: {p.deposit_policy.seasons.map((x) => `${x.name.toLowerCase()} ${x.from.split('-').reverse().join('.')}–${x.to.split('-').reverse().join('.')}`).join(', ')}
+                  </div>
+                )}
+              </td>
               <td>{p.prepayment_policy.pct}% {p.prepayment_policy.due === 'at_booking' ? 'при бронировании' : `за ${p.prepayment_policy.days ?? 0} дн. до заезда`}</td>
               <td>{typeNames(p.accommodation_type_ids)}</td>
             </tr>
