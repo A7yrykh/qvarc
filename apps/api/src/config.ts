@@ -18,6 +18,20 @@ export interface AppConfig {
   jobs: boolean;
   /** Множитель лимитов частоты запросов к модулю бронирования (1 в работе, больше в тестах). */
   rateLimitFactor: number;
+  guest: GuestAppConfig;
+}
+
+/** Приложение гостя для iPhone (адреса guest/v1/...). */
+export interface GuestAppConfig {
+  /** Объект, с которым работает приложение */
+  propertyCode: string;
+  /**
+   * 32 байта: шифрование паспортных данных и подпись SMS-кодов. Только из переменной GUEST_DATA_KEY.
+   * Без ключа вход в приложение и заселение отвечают «не настроено», остальной API работает как раньше.
+   */
+  dataKey: Buffer | null;
+  /** test: SMS не уходит, код пишется в журнал сервера (не для работы). none: вход по SMS выключен. */
+  sms: 'test' | 'none';
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
@@ -43,6 +57,16 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   if (provider === 'sandbox' && env.NODE_ENV === 'production' && env.ALLOW_SANDBOX_PAYMENTS !== 'true') {
     throw new Error('Тестовый провайдер оплаты нельзя включать в рабочей среде');
   }
+  const sms = (env.SMS_PROVIDER ?? (env.NODE_ENV === 'production' ? 'none' : 'test')) as GuestAppConfig['sms'];
+  if (sms !== 'test' && sms !== 'none') throw new Error(`Неизвестный SMS_PROVIDER: ${sms}`);
+  if (sms === 'test' && env.NODE_ENV === 'production' && env.ALLOW_TEST_SMS !== 'true') {
+    throw new Error('Тестовую отправку SMS нельзя включать в рабочей среде');
+  }
+  let dataKey: Buffer | null = null;
+  if (env.GUEST_DATA_KEY) {
+    dataKey = Buffer.from(env.GUEST_DATA_KEY, 'base64');
+    if (dataKey.length !== 32) throw new Error('GUEST_DATA_KEY: нужно 32 байта в base64 (openssl rand -base64 32)');
+  }
   return {
     databaseUrl,
     cookieSecure: env.COOKIE_SECURE !== 'false',
@@ -52,5 +76,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     payments: { provider, sandboxSecret: env.SANDBOX_WEBHOOK_SECRET ?? 'sandbox-dev-secret', sber },
     jobs: env.JOBS !== 'false',
     rateLimitFactor: 1,
+    guest: { propertyCode: env.GUEST_PROPERTY_CODE ?? 'qvarc-uvildy', dataKey, sms },
   };
 }

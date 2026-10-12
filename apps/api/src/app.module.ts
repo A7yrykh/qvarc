@@ -8,6 +8,16 @@ import { DbModule } from './common/db.module';
 import { ErrorFilter } from './common/errors';
 import { CONFIG } from './common/tokens';
 import type { AppConfig } from './config';
+import { AdminCheckinController, CheckinController } from './guest/checkin.controller';
+import { CheckinService } from './guest/checkin.service';
+import { GuestContentController } from './guest/content.controller';
+import { GuestAuthController } from './guest/guest-auth.controller';
+import { GuestAuthService } from './guest/guest-auth.service';
+import { GuestBookingsController } from './guest/guest-bookings.controller';
+import { GuestJobsService } from './guest/guest-jobs.service';
+import { GuestGuard } from './guest/guest.guard';
+import { NoSmsProvider, SMS_PROVIDER, TestSmsProvider } from './guest/sms.provider';
+import { GuestStayService } from './guest/stay.service';
 import { GuestsController } from './guests/guests.controller';
 import { GuestsService } from './guests/guests.service';
 import { AuthController } from './iam/auth.controller';
@@ -38,7 +48,10 @@ export class AppModule {
     return {
       module: AppModule,
       imports: [configModule, DbModule],
-      controllers: [AuthController, UsersController, InventoryController, GuestsController, BookingsController, PaymentsController, PublicController],
+      controllers: [
+        AuthController, UsersController, InventoryController, GuestsController, BookingsController, PaymentsController, PublicController,
+        GuestAuthController, GuestContentController, GuestBookingsController, CheckinController, AdminCheckinController,
+      ],
       providers: [
         AuthService,
         UsersService,
@@ -50,6 +63,12 @@ export class AppModule {
         HoldsService,
         PaymentsService,
         PublicService,
+        GuestAuthService,
+        GuestGuard,
+        GuestStayService,
+        CheckinService,
+        GuestJobsService,
+        { provide: SMS_PROVIDER, useFactory: () => (config.guest.sms === 'test' ? new TestSmsProvider() : new NoSmsProvider()) },
         { provide: PAYMENT_PROVIDER, useFactory: () => (config.payments.sber ? new SberProvider(config.payments.sber) : new SandboxProvider(config.payments.sandboxSecret, config.apiPublicUrl)) },
         { provide: APP_GUARD, useClass: AuthGuard },
         { provide: APP_FILTER, useClass: ErrorFilter },

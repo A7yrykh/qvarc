@@ -42,6 +42,18 @@ npm run build && npx next start -p 3100
 
 SwiftUI, iOS 17+, Xcode 16. Откройте `apps/ios/Kvarc.xcodeproj`. Без адреса сервера приложение работает в демо-режиме. Подробности — в `apps/ios/README.md`.
 
+Сервер приложения — этот же API, адреса `/guest/v1/...` (`apps/api/src/guest`). Гость входит по коду из SMS и видит брони, где телефон бронирующего совпадает с его номером. Онлайн-регистрация: состав гостей, паспортные данные, правила проживания и согласие на обработку ПДн.
+
+| Переменная | Что делает |
+|---|---|
+| `GUEST_DATA_KEY` | 32 байта в base64 (`openssl rand -base64 32`). Шифрует паспортные данные и подписывает SMS-коды. Без ключа вход в приложение отвечает «не настроено», остальной API работает как раньше. Ключ нельзя терять: без него сохранённые паспорта не расшифровать. |
+| `GUEST_PROPERTY_CODE` | Объект приложения, по умолчанию `qvarc-uvildy` |
+| `SMS_PROVIDER` | `test`: SMS не уходит, код пишется в журнал сервера (по умолчанию вне рабочей среды). `none`: вход выключен (по умолчанию в рабочей среде, пока не подключён SMS-сервис). |
+
+Паспортные данные: шифрование AES-256-GCM, гостю показываются только последние 4 цифры, сотруднику — с правом `guest.documents.read`, каждый просмотр пишется в журнал. Удаляются через 30 дней после выезда (`property.settings.guestApp.documentsRetentionDays`). Там же настраиваются `registrationOpensDaysBefore` (7), `documentsRequired` (да) и `paymentRequiredBeforeAccess` (да).
+
+Тексты для приложения: `data/kvarc-guest-info.json` (о базе, контакты, ответы на вопросы) и `data/legal-documents.json` (правила проживания; новая версия правил требует принять их заново).
+
 ## Модуль бронирования для сайта (apps/booking)
 
 Next.js 15, порт 3200. Поиск по датам и гостям, выбор категории и тарифа, оформление с согласием на обработку ПДн, переход к оплате, страница брони гостя `/b/<ссылка>` (статус, доплата, отмена по условиям тарифа с автоматическим возвратом).
@@ -117,5 +129,18 @@ tests/               интеграционные тесты на настоящ
 | PATCH | /admin/v1/bookings/:id/unit, /dates | booking.write |
 | POST | /admin/v1/bookings/:id/status | booking.status |
 | GET/POST/PUT | /admin/v1/guests | guest.read / guest.write |
+| GET | /admin/v1/bookings/:id/checkin | booking.read |
+| GET | /admin/v1/bookings/:id/guest-documents | booking.read + guest.documents.read |
+| POST | /admin/v1/bookings/:id/checkin/approve, /checkin/unit-ready | booking.status |
+
+Приложение гостя (вход по токену `Authorization: Bearer`):
+
+| Метод | Путь | |
+|---|---|---|
+| POST | /guest/v1/auth/otp/request, /otp/verify, /refresh, /logout | без входа |
+| GET | /guest/v1/property, /documents, /documents/:code | без входа |
+| GET | /guest/v1/bookings/my, /bookings/:id | гость |
+| GET, POST | /guest/v1/checkin/:id, /checkin/:id/start, /checkin/:id/rules | гость |
+| PUT | /guest/v1/checkin/:id/guests, /checkin/:id/documents | гость |
 
 Все суммы в копейках, даты в формате ГГГГ-ММ-ДД, выезд не включается в ночи.
