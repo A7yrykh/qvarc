@@ -8,6 +8,10 @@ import { DbModule } from './common/db.module';
 import { ErrorFilter } from './common/errors';
 import { CONFIG } from './common/tokens';
 import type { AppConfig } from './config';
+import { GuestAppController } from './guest-app/guest-app.controller';
+import { GuestAppService } from './guest-app/guest-app.service';
+import { GuestAuthService } from './guest-app/guest-auth.service';
+import { DisabledSmsSender, LogSmsSender, SMS_SENDER } from './guest-app/sms';
 import { GuestsController } from './guests/guests.controller';
 import { GuestsService } from './guests/guests.service';
 import { AuthController } from './iam/auth.controller';
@@ -38,7 +42,7 @@ export class AppModule {
     return {
       module: AppModule,
       imports: [configModule, DbModule],
-      controllers: [AuthController, UsersController, InventoryController, GuestsController, BookingsController, PaymentsController, PublicController],
+      controllers: [AuthController, UsersController, InventoryController, GuestsController, BookingsController, PaymentsController, PublicController, GuestAppController],
       providers: [
         AuthService,
         UsersService,
@@ -50,6 +54,9 @@ export class AppModule {
         HoldsService,
         PaymentsService,
         PublicService,
+        GuestAuthService,
+        GuestAppService,
+        { provide: SMS_SENDER, useFactory: () => (config.guestSms === 'log' ? new LogSmsSender() : new DisabledSmsSender()) },
         { provide: PAYMENT_PROVIDER, useFactory: () => (config.payments.sber ? new SberProvider(config.payments.sber) : new SandboxProvider(config.payments.sandboxSecret, config.apiPublicUrl)) },
         { provide: APP_GUARD, useClass: AuthGuard },
         { provide: APP_FILTER, useClass: ErrorFilter },

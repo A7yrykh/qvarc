@@ -375,6 +375,25 @@ export interface Guest {
   updated_at: Generated<Timestamp>;
 }
 
+export interface GuestAccount {
+  created_at: Generated<Timestamp>;
+  id: Generated<string>;
+  last_login_at: Timestamp | null;
+  phone_e164: string;
+  property_id: string;
+}
+
+export interface GuestAppSession {
+  access_expires_at: Timestamp;
+  access_hash: Buffer;
+  account_id: string;
+  created_at: Generated<Timestamp>;
+  id: Generated<string>;
+  refresh_expires_at: Timestamp;
+  refresh_hash: Buffer;
+  revoked_at: Timestamp | null;
+}
+
 export interface GuestConsent {
   granted_at: Timestamp;
   guest_id: string;
@@ -415,6 +434,18 @@ export interface GuestNote {
   kind: Generated<string>;
 }
 
+export interface GuestOtp {
+  attempts: Generated<number>;
+  code_hash: Buffer;
+  consumed_at: Timestamp | null;
+  created_at: Generated<Timestamp>;
+  expires_at: Timestamp;
+  id: Generated<string>;
+  ip: string | null;
+  phone_e164: string;
+  property_id: string;
+}
+
 export interface Integration {
   config: Generated<Json>;
   id: Generated<string>;
@@ -434,6 +465,16 @@ export interface InvoiceReference {
   external_system: string;
   folio_id: string | null;
   id: Generated<string>;
+}
+
+export interface LegalDocument {
+  code: string;
+  issuer: string;
+  property_id: string;
+  sections: Json;
+  title: string;
+  updated_at: Generated<Timestamp>;
+  version: string;
 }
 
 export interface LockDevice {
@@ -861,12 +902,16 @@ export interface DB {
   funnel_event: FunnelEvent;
   gift_certificate: GiftCertificate;
   guest: Guest;
+  guest_account: GuestAccount;
+  guest_app_session: GuestAppSession;
   guest_consent: GuestConsent;
   guest_document: GuestDocument;
   guest_merge_log: GuestMergeLog;
   guest_note: GuestNote;
+  guest_otp: GuestOtp;
   integration: Integration;
   invoice_reference: InvoiceReference;
+  legal_document: LegalDocument;
   lock_device: LockDevice;
   lock_event: LockEvent;
   menu: Menu;

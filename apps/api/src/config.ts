@@ -18,6 +18,8 @@ export interface AppConfig {
   jobs: boolean;
   /** Множитель лимитов частоты запросов к модулю бронирования (1 в работе, больше в тестах). */
   rateLimitFactor: number;
+  /** SMS с кодом входа в гостевое приложение: log — код в журнал сервера (только разработка), off — вход выключен. */
+  guestSms: 'log' | 'off';
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
@@ -43,6 +45,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   if (provider === 'sandbox' && env.NODE_ENV === 'production' && env.ALLOW_SANDBOX_PAYMENTS !== 'true') {
     throw new Error('Тестовый провайдер оплаты нельзя включать в рабочей среде');
   }
+  const guestSms = (env.GUEST_SMS ?? (env.NODE_ENV === 'production' ? 'off' : 'log')) as AppConfig['guestSms'];
+  if (guestSms !== 'log' && guestSms !== 'off') throw new Error(`Неизвестный GUEST_SMS: ${guestSms}`);
+  if (guestSms === 'log' && env.NODE_ENV === 'production') throw new Error('GUEST_SMS=log пишет коды входа в журнал, в рабочей среде нельзя');
   return {
     databaseUrl,
     cookieSecure: env.COOKIE_SECURE !== 'false',
@@ -52,5 +57,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     payments: { provider, sandboxSecret: env.SANDBOX_WEBHOOK_SECRET ?? 'sandbox-dev-secret', sber },
     jobs: env.JOBS !== 'false',
     rateLimitFactor: 1,
+    guestSms,
   };
 }

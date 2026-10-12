@@ -8,7 +8,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "db:migrate": "tsx packages/db/scripts/migrate.ts",
-    "db:types": "kysely-codegen --dialect postgres --out-file packages/db/src/schema.ts --exclude-pattern schema_migrations --date-parser string --type-mapping {\"int8\":\"number\",\"daterange\":\"string\",\"tstzrange\":\"string\"}",
+    "db:types": "kysely-codegen --dialect postgres --out-file packages/db/src/schema.ts --exclude-pattern schema_migrations --date-parser string --type-mapping '{\"int8\":\"number\",\"daterange\":\"string\",\"tstzrange\":\"string\"}'",
     "start:api": "node dist/apps/api/src/main.js"
   },
   "dependencies": {
