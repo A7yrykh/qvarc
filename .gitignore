@@ -5,3 +5,9 @@ dist/
 .next/
 next-env.d.ts
 *.tsbuildinfo
+
+# Xcode
+xcuserdata/
+DerivedData/
+*.xcuserstate
+.DS_Store
