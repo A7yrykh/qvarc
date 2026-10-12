@@ -55,6 +55,10 @@ describe('гостевое приложение', () => {
 
     const rules = await http.get(`${G}/documents/rules`).expect(200);
     expect(rules.body.sections).toHaveLength(10);
+    expect((await http.get(`${G}/documents/privacy`).expect(200)).body.sections).toHaveLength(10);
+    // Те же документы открываются из формы брони на сайте
+    const offer = await http.get('/public/v1/test/documents/offer').expect(200);
+    expect(offer.body.title).toBe('Договор-оферта на оказание услуг проживания');
     const missing = await http.get(`${G}/documents/offer-x`);
     expect(missing.status).toBe(404);
     expect(missing.body.error).toMatchObject({ code: 'not_found', message: 'Документ не найден' });
@@ -175,7 +179,7 @@ describe('онлайн-регистрация', () => {
     const C = `${G}/checkin/${booking.id}`;
 
     let s = (await http.get(C).set(auth).expect(200)).body;
-    expect(s).toMatchObject({ status: 'registration_not_started', expectedGuests: { adults: 2, children: 0 }, rulesVersion: '2026-10-12' });
+    expect(s).toMatchObject({ status: 'registration_not_started', expectedGuests: { adults: 2, children: 0 }, rulesVersion: '2026-10-12.2' });
     expect(s.steps).toMatchObject({ guests: false, documents: false, rules: false, payment: false, unitReady: false });
 
     // Чужой гость не видит регистрацию
@@ -209,14 +213,14 @@ describe('онлайн-регистрация', () => {
 
     const old = await http.post(`${C}/rules`).set(auth).send({ rulesVersion: '2020-01-01', rulesAccepted: true, personalDataConsent: true });
     expect(old.body.error.code).toBe('rules_outdated');
-    await http.post(`${C}/rules`).set(auth).send({ rulesVersion: '2026-10-12', rulesAccepted: true, personalDataConsent: true }).expect(200);
+    await http.post(`${C}/rules`).set(auth).send({ rulesVersion: '2026-10-12.2', rulesAccepted: true, personalDataConsent: true }).expect(200);
     s = (await http.get(C).set(auth)).body;
     expect(s).toMatchObject({ status: 'registration_complete', statusLabel: 'Регистрация завершена' });
     expect(s.accessBlockers.map((x: { code: string }) => x.code)).toEqual(['payment_required', 'unit_not_ready']);
 
     const owner = await login(app, OWNER.email, OWNER.password);
     const card = (await owner.get(`/admin/v1/bookings/${booking.id}`)).body;
-    expect(card.registration.rulesVersion).toBe('2026-10-12');
+    expect(card.registration.rulesVersion).toBe('2026-10-12.2');
     expect(card.registration.guests).toHaveLength(2);
     expect(JSON.stringify(card.registration)).not.toContain('345678');
   });

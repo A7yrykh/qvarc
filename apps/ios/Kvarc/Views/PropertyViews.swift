@@ -210,6 +210,13 @@ struct AboutView: View {
                 }
                 .buttonStyle(SecondaryButtonStyle())
 
+                NavigationLink {
+                    LegalDocumentView(code: "privacy")
+                } label: {
+                    Label("Политика конфиденциальности", systemImage: "lock.doc")
+                }
+                .buttonStyle(SecondaryButtonStyle())
+
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Контакты").font(.headline).foregroundStyle(Brand.ink)
                     if let a = info.address { Text(a).font(.subheadline).foregroundStyle(Brand.ink) }

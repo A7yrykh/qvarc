@@ -1,7 +1,9 @@
 // Клиент публичного API модуля бронирования
 export const PROPERTY = process.env.NEXT_PUBLIC_PROPERTY_CODE ?? 'kvarc';
-export const PRIVACY_URL = process.env.NEXT_PUBLIC_PRIVACY_URL ?? '';
-export const OFFER_URL = process.env.NEXT_PUBLIC_OFFER_URL ?? '';
+// Политика и правила по умолчанию открываются из системы (страница /docs/<код>), их текст загружается командой import-guest-app
+export const PRIVACY_URL = process.env.NEXT_PUBLIC_PRIVACY_URL ?? '/docs/privacy';
+export const RULES_URL = process.env.NEXT_PUBLIC_RULES_URL ?? '/docs/rules';
+export const OFFER_URL = process.env.NEXT_PUBLIC_OFFER_URL ?? '/docs/offer';
 
 export class ApiError extends Error {
   constructor(public status: number, public body: { message?: string; code?: string; issues?: { path: string; message: string }[] }) {

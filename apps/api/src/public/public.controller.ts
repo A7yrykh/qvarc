@@ -5,6 +5,7 @@ import { CONFIG } from '../common/tokens';
 import type { AppConfig } from '../config';
 import { parse } from '../common/validation';
 import { ClientIp, Public } from '../iam/auth.decorators';
+import { GuestAppService } from '../guest-app/guest-app.service';
 import { ManageToken, OffersQuery, PublicBookingBody } from './public.schemas';
 import { PublicService } from './public.service';
 
@@ -19,6 +20,7 @@ export class PublicController {
 
   constructor(
     private readonly svc: PublicService,
+    private readonly guestApp: GuestAppService,
     @Inject(CONFIG) config: AppConfig,
   ) {
     const k = config.rateLimitFactor;
@@ -30,6 +32,12 @@ export class PublicController {
   @Get('info')
   info(@Param('property') code: string) {
     return this.svc.info(code);
+  }
+
+  /** Документы объекта (правила проживания, политика конфиденциальности) для ссылок из формы брони */
+  @Get('documents/:code')
+  document(@Param('property') code: string, @Param('code') doc: string) {
+    return this.guestApp.document(code, doc);
   }
 
   @Get('offers')

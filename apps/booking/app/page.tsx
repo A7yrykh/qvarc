@@ -1,7 +1,7 @@
 'use client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
-import { MEAL, OFFER_URL, PRIVACY_URL, PROPERTY, addDays, api, cancellationText, diffDays, errorText, fmtDate, nightsWord, rub, type Tier } from '@/lib/api';
+import { MEAL, OFFER_URL, PRIVACY_URL, RULES_URL, PROPERTY, addDays, api, cancellationText, diffDays, errorText, fmtDate, nightsWord, rub, type Tier } from '@/lib/api';
 
 interface Info { name: string; checkInTime: string; checkOutTime: string; today: string; holdMinutes: number }
 interface Offer {
@@ -256,7 +256,8 @@ function Checkout({ info, search, room, offer, onBack, onDone }: {
           <input type="checkbox" required checked={pd} onChange={(e) => setPd(e.target.checked)} />
           <span>
             Даю согласие на обработку персональных данных{PRIVACY_URL ? <> по <a href={PRIVACY_URL} target="_blank" rel="noreferrer">политике конфиденциальности</a></> : ''}
-            {OFFER_URL ? <> и принимаю <a href={OFFER_URL} target="_blank" rel="noreferrer">условия бронирования</a></> : ''}
+            {RULES_URL ? <>, принимаю <a href={RULES_URL} target="_blank" rel="noreferrer">правила проживания</a></> : ''}
+            {OFFER_URL ? <> и <a href={OFFER_URL} target="_blank" rel="noreferrer">договор-оферту</a></> : ''}
           </span>
         </label>
         <label className="check">

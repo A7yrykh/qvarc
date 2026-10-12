@@ -325,8 +325,8 @@ extension DemoBackend {
 
     func legalDocument(_ code: String) async throws -> LegalDocument {
         await pause()
-        guard code == DemoLegal.rules.code else { throw APIError(status: 404, code: "not_found", message: "Документ не найден") }
-        return DemoLegal.rules
+        guard let doc = DemoLegal.document(code) else { throw APIError(status: 404, code: "not_found", message: "Документ не найден") }
+        return doc
     }
 
     func menu(_ restaurantId: String) async throws -> RestaurantMenu {
