@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
-import { CHANNEL, STATUS, byName, diffDays, errorText, fmtDate, get, patch, post, rub } from '@/lib/api';
+import { CHANNEL, STATUS, byName, diffDays, errorText, fmtDate, get, patch, post, rub, toMinor } from '@/lib/api';
 import { can, useMe } from '@/components/Shell';
 
 interface Stay { id: string; unit_id: string | null; unit_name: string | null; type_name: string; accommodation_type_id: string; stay: string; is_active: boolean; adults: number; children: number }
@@ -15,6 +15,12 @@ interface Booking {
   allowed_transitions: string[];
 }
 interface Unit { id: string; name: string; accommodation_type_id: string; is_active: boolean }
+interface Payment { id: string; purpose: string; method: string; provider: string | null; status: string; amount_minor: number; refunded_minor: number; paid_at: string | null; created_at: string }
+
+const PAY_STATUS: Record<string, { label: string; tone: string }> = {
+  created: { label: 'Создан', tone: 'muted' }, pending: { label: 'Ждёт оплаты', tone: 'warn' }, authorized: { label: 'Авторизован', tone: 'info' },
+  succeeded: { label: 'Оплачен', tone: 'ok' }, failed: { label: 'Не прошёл', tone: 'bad' }, cancelled: { label: 'Отменён', tone: 'muted' },
+};
 
 const ACTION: Record<string, { label: string; cls?: string; needsReason?: boolean }> = {
   confirmed: { label: 'Подтвердить', cls: 'primary' },
@@ -36,14 +42,16 @@ export default function BookingPage() {
   const [busy, setBusy] = useState(false);
   const [moveTo, setMoveTo] = useState('');
   const [dates, setDates] = useState({ arrival: '', departure: '' });
+  const [payments, setPayments] = useState<Payment[]>([]);
 
   const load = useCallback(async () => {
     try {
       const data = await get<Booking>(`/bookings/${id}`);
       setB(data);
       setDates({ arrival: data.arrival, departure: data.departure });
+      if (can(me, 'payment.read')) setPayments(await get<Payment[]>(`/bookings/${id}/payments`));
     } catch (e) { setError(errorText(e)); }
-  }, [id]);
+  }, [id, me]);
   useEffect(() => { load(); }, [load]);
   useEffect(() => { if (can(me, 'inventory.read')) get<Unit[]>('/units').then((u) => setUnits(u.sort(byName))).catch(() => undefined); }, [me]);
 
@@ -57,6 +65,17 @@ export default function BookingPage() {
   const stay = b.stays.find((s) => s.is_active) ?? b.stays[0];
   const editable = can(me, 'booking.write') && !['cancelled', 'no_show', 'expired', 'checked_out'].includes(b.status);
   const sameType = units.filter((u) => u.accommodation_type_id === stay?.accommodation_type_id && u.is_active && u.id !== stay?.unit_id);
+
+  const refund = (p: Payment) => {
+    const left = (p.amount_minor - p.refunded_minor) / 100;
+    const sum = window.prompt(`Сумма возврата, ₽ (не больше ${left.toLocaleString('ru-RU')})`, String(left));
+    if (sum === null) return;
+    const amountMinor = toMinor(sum);
+    if (!Number.isFinite(amountMinor) || amountMinor <= 0) { setError('Сумма возврата: введите число больше нуля'); return; }
+    const reason = window.prompt('Причина возврата (попадёт в журнал)');
+    if (!reason) return;
+    run(() => post(`/payments/${p.id}/refunds`, { amountMinor, reason }), 'Возврат отправлен');
+  };
 
   const changeStatus = (to: string) => {
     const a = ACTION[to];
@@ -110,7 +129,25 @@ export default function BookingPage() {
           <div className="row"><span className="muted">Оплачено</span><span style={{ marginLeft: 'auto' }}>{rub(b.paid_minor)}</span></div>
           <div className="row"><span className="muted">Остаток</span><b style={{ marginLeft: 'auto', color: b.balance_minor > 0 ? 'var(--bad)' : undefined }}>{rub(b.balance_minor)}</b></div>
           {b.prepayment_due_minor > 0 && <div className="row"><span className="muted">Предоплата по тарифу</span><span style={{ marginLeft: 'auto' }}>{rub(b.prepayment_due_minor)}</span></div>}
-          <div className="muted" style={{ fontSize: 12 }}>Приём оплаты появится на этапе 2.</div>
+          {payments.length > 0 && (
+            <table className="list" style={{ border: 0, marginTop: 6 }}>
+              <tbody>
+                {payments.map((p) => (
+                  <tr key={p.id}>
+                    <td style={{ padding: '6px 0' }}>
+                      {rub(p.amount_minor)} <span className={`badge tone-${PAY_STATUS[p.status]?.tone ?? 'muted'}`}>{PAY_STATUS[p.status]?.label ?? p.status}</span>
+                      {p.refunded_minor > 0 && <div className="muted" style={{ fontSize: 12 }}>возвращено {rub(p.refunded_minor)}</div>}
+                    </td>
+                    <td style={{ padding: '6px 0', textAlign: 'right' }}>
+                      {p.status === 'succeeded' && p.refunded_minor < p.amount_minor && can(me, 'payment.refund') && (
+                        <button className="btn" disabled={busy} onClick={() => refund(p)}>Вернуть</button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 

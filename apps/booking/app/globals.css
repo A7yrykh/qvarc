@@ -1,0 +1,56 @@
+/* Модуль бронирования QVARC: светлый камень, графит, хвоя */
+:root {
+  --bg: #f6f5f2; --surface: #fff; --line: #e1dfd9; --text: #23262a; --muted: #6b6f75;
+  --graphite: #2f3338; --accent: #4f6146; --accent-soft: #e5ebe1;
+  --warn: #8a6420; --warn-bg: #f5ead2; --bad: #8f3b32; --bad-bg: #f4e0dc; --ok: #4f6146; --ok-bg: #e1eadc;
+  font-family: Manrope, 'Segoe UI', system-ui, -apple-system, sans-serif; color: var(--text); background: var(--bg);
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 20px 16px 48px; }
+h1 { font-size: 24px; font-weight: 600; margin: 0 0 4px; letter-spacing: -0.01em; }
+h2 { font-size: 19px; font-weight: 600; margin: 0 0 8px; }
+h3 { font-size: 15px; font-weight: 600; margin: 0; }
+a { color: var(--accent); }
+button, input, select, textarea { font: inherit; color: inherit; }
+input, select, textarea { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--surface); width: 100%; min-width: 0; }
+input:focus, select:focus, textarea:focus, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+label.f { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+label.f > * { font-size: 15px; color: var(--text); }
+label.check { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; }
+label.check input { width: 18px; height: 18px; margin-top: 2px; flex: none; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 10px 18px; cursor: pointer; text-decoration: none; display: inline-block; text-align: center; color: var(--text); }
+.btn:hover { background: #f0efeb; }
+.btn.primary { background: var(--graphite); border-color: var(--graphite); color: #fff; }
+.btn.primary:hover { background: #1f2226; }
+.btn.link { border: 0; background: none; color: var(--accent); padding: 0; }
+.btn:disabled { opacity: 0.5; cursor: default; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+.stack { display: grid; gap: 14px; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.error { background: var(--bad-bg); color: var(--bad); padding: 12px 14px; border-radius: 8px; }
+.notice { background: var(--ok-bg); color: var(--ok); padding: 12px 14px; border-radius: 8px; }
+.warn { background: var(--warn-bg); color: var(--warn); padding: 12px 14px; border-radius: 8px; }
+.brand { font-weight: 700; letter-spacing: 0.24em; font-size: 15px; color: var(--graphite); margin-bottom: 14px; }
+
+.search { display: grid; grid-template-columns: 1fr 1fr 110px 1.2fr auto; gap: 10px; align-items: end; }
+.kids { display: flex; gap: 6px; flex-wrap: wrap; }
+.kids select { width: auto; }
+@media (max-width: 760px) { .search { grid-template-columns: 1fr 1fr; } .search .go, .search .kidsf { grid-column: 1 / -1; } }
+
+.room { display: grid; grid-template-columns: 240px 1fr; gap: 18px; }
+.photo { background: linear-gradient(135deg, #dfe4da, #c9d2c3); border-radius: 10px; min-height: 160px; display: grid; place-items: center; color: #6c7a64; font-size: 13px; overflow: hidden; }
+.photo img { width: 100%; height: 100%; object-fit: cover; }
+@media (max-width: 760px) { .room { grid-template-columns: 1fr; } .photo { min-height: 140px; } }
+.offer { border-top: 1px solid var(--line); padding-top: 12px; display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; }
+.offer .price { text-align: right; }
+.offer .price b { font-size: 20px; }
+@media (max-width: 520px) { .offer { grid-template-columns: 1fr; } .offer .price { text-align: left; } }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.tag { background: #f0efeb; border-radius: 999px; padding: 2px 10px; font-size: 12px; color: var(--muted); }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.summary { display: grid; gap: 6px; }
+.summary .line { display: flex; justify-content: space-between; gap: 12px; }
+.status { display: inline-block; padding: 3px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; }

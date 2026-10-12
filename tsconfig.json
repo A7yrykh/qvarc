@@ -27,6 +27,7 @@
   ],
   "exclude": [
     "apps/admin/**",
+    "apps/booking/**",
     "node_modules",
     "dist"
   ]
