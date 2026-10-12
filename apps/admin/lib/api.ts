@@ -1,4 +1,11 @@
 // Клиент API админки. Сессия в httpOnly-cookie, CSRF-токен читается из cookie qvarc_csrf.
+// В демо-сборке (NEXT_PUBLIC_DEMO=1) запросы обслуживает lib/demo.ts в браузере, сервер не нужен.
+import { DemoError, demoApi } from './demo';
+
+export const DEMO = process.env.NEXT_PUBLIC_DEMO === '1';
+/** Префикс адреса, если админка открыта не с корня сайта (демо в папке) */
+export const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+export const asset = (p: string) => `${BASE}${p}`;
 
 export class ApiError extends Error {
   constructor(public status: number, public body: { message?: string; code?: string; issues?: { path: string; message: string }[]; restrictions?: { code: string; night?: string; value?: number }[] }) {
@@ -12,6 +19,14 @@ function csrf(): string {
 }
 
 export async function api<T = unknown>(method: string, path: string, body?: unknown): Promise<T> {
+  if (DEMO) {
+    try {
+      return (await demoApi(method, path, body)) as T;
+    } catch (e) {
+      if (e instanceof DemoError) throw new ApiError(e.status, e.body);
+      throw e;
+    }
+  }
   const res = await fetch(`/admin/v1${path}`, {
     method,
     credentials: 'same-origin',
@@ -23,7 +38,7 @@ export async function api<T = unknown>(method: string, path: string, body?: unkn
   });
   const data = res.status === 204 ? null : await res.json().catch(() => null);
   if (res.status === 401 && typeof window !== 'undefined' && !path.startsWith('/auth/login')) {
-    window.location.href = '/login';
+    window.location.href = asset('/login');
   }
   if (!res.ok) throw new ApiError(res.status, data ?? {});
   return data as T;

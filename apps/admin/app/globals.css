@@ -108,3 +108,4 @@ table.list tr.click:hover td { background: #faf9f7; }
 .prices td.closed { background: var(--bad-bg); color: var(--bad); }
 .prices td.pick { cursor: pointer; user-select: none; }
 .prices .flag { font-size: 10px; color: var(--warn); }
+.notice.demo { background: var(--warn-bg); color: var(--warn); margin-bottom: 16px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }

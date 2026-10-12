@@ -2,7 +2,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { createContext, useContext, useEffect, useState } from 'react';
-import { get, post } from '@/lib/api';
+import { DEMO, asset, get, post } from '@/lib/api';
+import { resetDemo } from '@/lib/demo';
 
 export interface Me { id: string; email: string; fullName: string; permissions: string[] }
 const MeContext = createContext<Me | null>(null);
@@ -29,15 +30,23 @@ export function Shell({ children }: { children: React.ReactNode }) {
     <MeContext.Provider value={me}>
       <div className="shell">
         <nav className="side">
-          <div className="brand"><img src="/brand/kvarc-logo-light.svg" alt="Кварц" /></div>
+          <div className="brand"><img src={asset('/brand/kvarc-logo-light.svg')} alt="Кварц" /></div>
           {NAV.filter((n) => can(me, n.perm)).map((n) => (
             <Link key={n.href} href={n.href} className={path.startsWith(n.href) ? 'active' : ''}>{n.label}</Link>
           ))}
           <div className="grow" />
           <div className="who">{me.fullName}</div>
-          <a href="#" onClick={async (e) => { e.preventDefault(); await post('/auth/logout'); window.location.href = '/login'; }}>Выйти</a>
+          <a href="#" onClick={async (e) => { e.preventDefault(); await post('/auth/logout'); window.location.href = asset('/login'); }}>Выйти</a>
         </nav>
-        <main className="main">{children}</main>
+        <main className="main">
+          {DEMO && (
+            <div className="notice demo">
+              <b>Демо-версия.</b> Брони, гости и цены выдуманы и не связаны с настоящим бронированием. Изменения видны только в вашем браузере.
+              <button className="btn" style={{ marginLeft: 12 }} onClick={() => { resetDemo(); window.location.reload(); }}>Начать заново</button>
+            </div>
+          )}
+          {children}
+        </main>
       </div>
     </MeContext.Provider>
   );
