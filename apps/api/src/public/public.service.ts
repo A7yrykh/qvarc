@@ -193,7 +193,7 @@ export class PublicService {
     const paid = await this.payments.paidMinor(this.db, b.id);
     const { today } = await this.availability.propertyToday(ref.property_id);
     const cancellable = ['pending_payment', 'confirmed', 'pending_confirmation'].includes(b.status) && today <= b.arrival;
-    const penalty = cancellable ? this.penalty(b, today) : null;
+    const penalty = cancellable ? await this.penalty(b, today) : null;
     return {
       number: b.number,
       status: b.status,
@@ -219,10 +219,17 @@ export class PublicService {
   }
 
   /** Удержание при отмене: неоплаченная бронь отменяется без удержания. */
-  private penalty(b: { status: string; is_refundable: boolean | null; cancellation_policy: unknown; total_minor: number; arrival: string }, today: string) {
+  private async penalty(b: { id: string; status: string; is_refundable: boolean | null; cancellation_policy: unknown; total_minor: number; arrival: string }, today: string, trx: Database = this.db) {
     if (b.status === 'pending_payment') return 0;
     if (b.is_refundable === false) return b.total_minor;
-    return cancellationPenaltyMinor(b.cancellation_policy as CancellationTier[], b.total_minor, b.arrival, today);
+    const nights = await trx
+      .selectFrom('booking_night_price as n')
+      .innerJoin('booking_stay as s', 's.id', 'n.booking_stay_id')
+      .select(['n.amount_minor'])
+      .where('s.booking_id', '=', b.id)
+      .orderBy('n.night')
+      .execute();
+    return cancellationPenaltyMinor(b.cancellation_policy as CancellationTier[], b.total_minor, b.arrival, today, nights.map((n) => Number(n.amount_minor)));
   }
 
   /** Повторная попытка оплаты, пока номер удерживается. */
@@ -257,7 +264,7 @@ export class PublicService {
       if (!['pending_payment', 'confirmed', 'pending_confirmation'].includes(b.status) || today > b.arrival) {
         throw new ConflictException('Эту бронь уже нельзя отменить онлайн, позвоните нам');
       }
-      const penalty = this.penalty(b, today);
+      const penalty = await this.penalty(b, today, trx);
       const paid = await this.payments.paidMinor(trx, b.id);
       await trx.updateTable('booking').set({ status: 'cancelled', hold_expires_at: null }).where('id', '=', b.id).execute();
       await this.audit.write(

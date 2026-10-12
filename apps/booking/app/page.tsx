@@ -10,12 +10,33 @@ interface Offer {
   nights: { night: string; amountMinor: number }[]; totalMinor: number; prepaymentDueMinor: number; cancellationPolicy: Tier[] | null;
 }
 interface Room {
-  accommodationType: { id: string; name: string; kind: string; areaM2: number | null; maxOccupancy: number; amenities: string[]; photos: { url: string }[]; description: string | null };
+  accommodationType: { id: string; name: string; kind: string; areaM2: number | null; maxOccupancy: number; amenities: string[]; photos: { url: string; alt?: string }[]; description: string | null };
   soldOut: boolean; lastOne: boolean; offers: Offer[];
 }
 interface Search { arrival: string; departure: string; adults: number; children: number[] }
 
 /** Почему тариф нельзя забронировать на эти даты — для гостя */
+/** Фото категории: большое и ряд миниатюр для переключения. Без фото — фирменная иллюстрация. */
+function Photos({ photos, name }: { photos: { url: string; alt?: string }[]; name: string }) {
+  const [i, setI] = useState(0);
+  if (photos.length === 0) return <div className="photo"><img className="ill" src="/brand/lake.png" alt="" /></div>;
+  const cur = photos[Math.min(i, photos.length - 1)];
+  return (
+    <div className="gallery">
+      <div className="photo"><img src={cur.url} alt={cur.alt || name} loading="lazy" /></div>
+      {photos.length > 1 && (
+        <div className="thumbs">
+          {photos.slice(0, 6).map((p, j) => (
+            <button key={p.url} type="button" className={j === i ? 'on' : ''} onClick={() => setI(j)} aria-label={`Фото ${j + 1} из ${photos.length}`}>
+              <img src={p.url} alt="" loading="lazy" />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function whyNot(o: Offer) {
   const r = o.restrictions[0];
   if (!r) return 'Нет мест';
@@ -124,9 +145,7 @@ function Booking() {
           {rooms.length === 0 && <div className="warn">На эти даты нет подходящих вариантов. Попробуйте другие даты или меньше гостей.</div>}
           {rooms.map((r) => (
             <div key={r.accommodationType.id} className="card room">
-              <div className="photo">
-                {r.accommodationType.photos?.[0]?.url ? <img src={r.accommodationType.photos[0].url} alt={r.accommodationType.name} /> : <img className="ill" src="/brand/lake.png" alt="" />}
-              </div>
+              <Photos photos={r.accommodationType.photos ?? []} name={r.accommodationType.name} />
               <div className="stack" style={{ gap: 10 }}>
                 <div>
                   <h2>{r.accommodationType.name}</h2>

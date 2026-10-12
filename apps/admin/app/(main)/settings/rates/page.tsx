@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { errorText, get, post } from '@/lib/api';
 import { can, useMe } from '@/components/Shell';
 
-interface Tier { days_before: number; penalty_pct: number }
+interface Tier { days_before: number; penalty_pct: number; penalty_nights?: number }
 interface Plan {
   id: string; code: string; name: string; meal_plan: string; is_refundable: boolean; is_public: boolean; is_active: boolean;
   cancellation_policy: Tier[]; prepayment_policy: { pct: number; due: string; days?: number }; accommodation_type_ids: string[];
@@ -20,7 +20,11 @@ const NEW = {
 /** Условия отмены словами: «за 7+ дн. бесплатно, позже 100%». */
 function policyText(tiers: Tier[]) {
   const sorted = [...tiers].sort((a, b) => b.days_before - a.days_before);
-  return sorted.map((t) => `${t.days_before > 0 ? `за ${t.days_before}+ дн.` : 'в день заезда'}: ${t.penalty_pct === 0 ? 'бесплатно' : `штраф ${t.penalty_pct}%`}`).join('; ');
+  const fine = (t: Tier) =>
+    t.penalty_nights !== undefined
+      ? t.penalty_nights === 0 ? 'бесплатно' : `штраф ${t.penalty_nights} ноч.`
+      : t.penalty_pct === 0 ? 'бесплатно' : `штраф ${t.penalty_pct}%`;
+  return sorted.map((t) => `${t.days_before > 0 ? `за ${t.days_before}+ дн.` : 'в день заезда'}: ${fine(t)}`).join('; ');
 }
 
 export default function RatesPage() {
@@ -91,11 +95,17 @@ export default function RatesPage() {
             <label className="row" style={{ display: 'flex', color: 'var(--text)', fontSize: 14 }}><input type="checkbox" checked={f.isRefundable} onChange={(e) => setF({ ...f, isRefundable: e.target.checked })} /> Возвратный</label>
           </div>
           <div className="stack" style={{ gap: 6 }}>
-            <span className="muted">Условия отмены (штраф в % от стоимости; строка «0 дней» обязательна)</span>
+            <span className="muted">Условия отмены (штраф в % от стоимости или стоимостью первых ночей; строка «0 дней» обязательна)</span>
             {f.tiers.map((t, i) => (
               <div key={i} className="row">
                 за <input type="number" min={0} style={{ width: 70 }} value={t.days_before} onChange={(e) => setF({ ...f, tiers: f.tiers.map((x, j) => (j === i ? { ...x, days_before: Number(e.target.value) } : x)) })} /> дн. и более до заезда штраф
-                <input type="number" min={0} max={100} style={{ width: 70 }} value={t.penalty_pct} onChange={(e) => setF({ ...f, tiers: f.tiers.map((x, j) => (j === i ? { ...x, penalty_pct: Number(e.target.value) } : x)) })} /> %
+                <input type="number" min={0} max={t.penalty_nights !== undefined ? 30 : 100} style={{ width: 70 }} value={t.penalty_nights ?? t.penalty_pct}
+                  onChange={(e) => setF({ ...f, tiers: f.tiers.map((x, j) => (j === i ? (x.penalty_nights !== undefined ? { ...x, penalty_nights: Number(e.target.value) } : { ...x, penalty_pct: Number(e.target.value) }) : x)) })} />
+                <select aria-label="Единица штрафа" value={t.penalty_nights !== undefined ? 'nights' : 'pct'}
+                  onChange={(e) => setF({ ...f, tiers: f.tiers.map((x, j) => (j === i ? (e.target.value === 'nights' ? { days_before: x.days_before, penalty_pct: 0, penalty_nights: 1 } : { days_before: x.days_before, penalty_pct: 0 }) : x)) })}>
+                  <option value="pct">% стоимости</option>
+                  <option value="nights">ночей</option>
+                </select>
                 {f.tiers.length > 1 && <button type="button" className="btn" onClick={() => setF({ ...f, tiers: f.tiers.filter((_, j) => j !== i) })}>×</button>}
               </div>
             ))}

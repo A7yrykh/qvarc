@@ -51,17 +51,22 @@ export const nightsWord = (n: number) => {
 
 export const MEAL: Record<string, string> = { none: 'Без питания', breakfast: 'Завтрак включён', half_board: 'Полупансион', full_board: 'Полный пансион' };
 
-export interface Tier { days_before: number; penalty_pct: number }
-/** Условия отмены простыми словами: «за 7 дн. и более до заезда — бесплатно; менее чем за 7 дн. — удерживается 50%» */
+export interface Tier { days_before: number; penalty_pct: number; penalty_nights?: number }
+const daysText = (n: number) => (n === 1 ? 'сутки' : `${n} дн.`);
+const penaltyText = (t: Tier) =>
+  t.penalty_nights !== undefined
+    ? t.penalty_nights === 0 ? 'бесплатно' : t.penalty_nights === 1 ? 'удерживается стоимость первой ночи' : `удерживается стоимость первых ${t.penalty_nights} ночей`
+    : t.penalty_pct === 0 ? 'бесплатно' : `удерживается ${t.penalty_pct}% стоимости`;
+/** Условия отмены простыми словами: «за сутки и более до заезда — бесплатно; позже — удерживается стоимость первой ночи» */
 export function cancellationText(tiers: Tier[] | null) {
   if (!tiers) return 'Невозвратный тариф: при отмене оплата не возвращается';
   const sorted = [...tiers].sort((a, b) => b.days_before - a.days_before);
   const parts = sorted.map((t, i) => {
     const upper = i === 0 ? null : sorted[i - 1].days_before - 1;
     const when = i === 0
-      ? (t.days_before === 0 ? 'в любой момент' : `за ${t.days_before} дн. и более до заезда`)
-      : t.days_before === 0 ? `менее чем за ${upper! + 1} дн.` : `за ${t.days_before}–${upper} дн.`;
-    return `${when} — ${t.penalty_pct === 0 ? 'бесплатно' : `удерживается ${t.penalty_pct}% стоимости`}`;
+      ? (t.days_before === 0 ? 'в любой момент' : `за ${daysText(t.days_before)} и более до заезда`)
+      : t.days_before === 0 ? (upper === 0 ? 'позже' : `менее чем за ${daysText(upper! + 1)}`) : `за ${t.days_before}–${upper} дн.`;
+    return `${when} — ${penaltyText(t)}`;
   });
   return `Отмена: ${parts.join('; ')}`;
 }

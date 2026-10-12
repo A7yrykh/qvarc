@@ -13,6 +13,11 @@ export const TypeBody = z
     maxOccupancy: z.number().int().min(1).max(50),
     description: z.string().max(5000).nullable().optional(),
     amenities: z.array(z.string().max(100)).max(100).default([]),
+    /** Фото: адрес (https:// или путь от корня модуля бронирования) и подпись. Не передано — фото не меняются. */
+    photos: z
+      .array(z.object({ url: z.string().max(500).regex(/^(https:\/\/|\/)[^\s"'<>]+$/, 'Адрес фото: https://… или /…'), alt: z.string().max(300).default('') }))
+      .max(30)
+      .optional(),
     sortOrder: z.number().int().default(0),
     isActive: z.boolean().default(true),
   })
@@ -26,7 +31,7 @@ export const UnitBody = z.object({
   isActive: z.boolean().default(true),
 });
 
-const Tier = z.object({ days_before: z.number().int().min(0), penalty_pct: z.number().min(0).max(100) });
+const Tier = z.object({ days_before: z.number().int().min(0), penalty_pct: z.number().min(0).max(100), penalty_nights: z.number().int().min(0).max(30).optional() });
 export const RatePlanBody = z.object({
   code: z.string().regex(/^[a-z0-9_-]{2,40}$/),
   name: z.string().min(1).max(200),

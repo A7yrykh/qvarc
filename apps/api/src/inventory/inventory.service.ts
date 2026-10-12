@@ -78,6 +78,7 @@ export class InventoryService {
           max_occupancy: input.maxOccupancy,
           description: input.description ?? null,
           amenities: input.amenities,
+          photos: JSON.stringify(input.photos ?? []),
           sort_order: input.sortOrder,
           is_active: input.isActive,
         })
@@ -104,6 +105,7 @@ export class InventoryService {
           max_occupancy: input.maxOccupancy,
           description: input.description ?? null,
           amenities: input.amenities,
+          ...(input.photos ? { photos: JSON.stringify(input.photos) } : {}),
           sort_order: input.sortOrder,
           is_active: input.isActive,
         })

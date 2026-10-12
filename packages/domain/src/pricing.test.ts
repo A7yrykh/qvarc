@@ -116,3 +116,15 @@ describe('условия отмены и предоплата', () => {
     expect(prepaymentMinor({ pct: 30, due: 'at_booking' }, 1_234_567)).toBe(370_370);
   });
 });
+
+describe('удержание стоимостью первой ночи', () => {
+  const tiers = [{ days_before: 1, penalty_pct: 0 }, { days_before: 0, penalty_pct: 0, penalty_nights: 1 }];
+  it('бесплатно не позже чем за сутки, позже — цена первой ночи', () => {
+    expect(cancellationPenaltyMinor(tiers, 1_500_000, '2027-07-20', '2027-07-19', [500_000, 400_000, 600_000])).toBe(0);
+    expect(cancellationPenaltyMinor(tiers, 1_500_000, '2027-07-20', '2027-07-20', [500_000, 400_000, 600_000])).toBe(500_000);
+  });
+  it('без цен ночей посчитать нельзя', () => {
+    expect(() => cancellationPenaltyMinor(tiers, 1_000, '2027-07-20', '2027-07-20')).toThrow();
+  });
+});
+
