@@ -4,7 +4,7 @@ import Security
 /// Хранение токена входа в Keychain (не в UserDefaults).
 enum Keychain {
     static let refreshTokenKey = "qvarc.refreshToken"
-    private static let service = "ru.qvarcuvildy.guest"
+    private static let service = "ru.kvarc.guest"
 
     static func save(_ value: String, for key: String) {
         let base: [String: Any] = [

@@ -1,6 +1,6 @@
 // Сведения о базе для гостевого приложения и документы (правила проживания и др.) из файла data/kvarc-guest-app.json.
 // Повторный запуск перезаписывает сведения и документы с теми же кодами.
-//   DATABASE_URL=... npx tsx apps/api/src/cli/import-guest-app.ts qvarc-uvildy data/kvarc-guest-app.json
+//   DATABASE_URL=... npx tsx apps/api/src/cli/import-guest-app.ts kvarc data/kvarc-guest-app.json
 import { sql } from 'kysely';
 import { readFileSync } from 'node:fs';
 import { z } from 'zod';

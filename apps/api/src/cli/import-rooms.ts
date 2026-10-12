@@ -1,7 +1,7 @@
 // Загрузка категорий номеров, фото, номеров и основного тарифа из файла (data/kvarc-rooms.json).
 // Повторный запуск обновляет категории по коду и добавляет недостающие номера, ничего не удаляя.
 // Изменения проходят через те же сервисы, что и админка, и пишутся в журнал от имени владельца.
-//   DATABASE_URL=... npx tsx apps/api/src/cli/import-rooms.ts qvarc-uvildy data/kvarc-rooms.json
+//   DATABASE_URL=... npx tsx apps/api/src/cli/import-rooms.ts kvarc data/kvarc-rooms.json
 import { readFileSync } from 'node:fs';
 import { z } from 'zod';
 import { createDb, type Database } from '../../../../packages/db/src';

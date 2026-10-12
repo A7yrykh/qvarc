@@ -19,7 +19,7 @@ CREATE TABLE organization (
 CREATE TABLE property (
   id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   organization_id  uuid NOT NULL REFERENCES organization(id),
-  code             text NOT NULL UNIQUE,      -- 'qvarc-uvildy'
+  code             text NOT NULL UNIQUE,      -- 'kvarc'
   name             text NOT NULL,
   timezone         text NOT NULL DEFAULT 'Asia/Yekaterinburg',
   currency         char(3) NOT NULL DEFAULT 'RUB',

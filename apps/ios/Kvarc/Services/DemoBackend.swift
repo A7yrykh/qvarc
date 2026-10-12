@@ -41,7 +41,7 @@ final class DemoBackend: Backend {
             checkedInAt: nil, checkedOutAt: nil
         )
 
-        // Список проката — от владельца. Цены катамарана, сапов и велосипедов — с сайта базы,
+        // Список проката — от владельца. Цены катамарана, сапов и велосипедов — с кварц.рус («Чем заняться»),
         // остальные ещё не известны: price = 0 («цена уточняется»). Количество — пример.
         func item(_ id: String, _ name: String, _ desc: String, price: Int = 0, minutes: Int?, minAge: Int? = nil, max: Int) -> Service {
             Service(id: id, name: name, description: desc, price: price, bookingMode: "slot", durationMinutes: minutes, minAge: minAge,

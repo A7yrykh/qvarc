@@ -1,5 +1,5 @@
 // Клиент публичного API модуля бронирования
-export const PROPERTY = process.env.NEXT_PUBLIC_PROPERTY_CODE ?? 'qvarc-uvildy';
+export const PROPERTY = process.env.NEXT_PUBLIC_PROPERTY_CODE ?? 'kvarc';
 export const PRIVACY_URL = process.env.NEXT_PUBLIC_PRIVACY_URL ?? '';
 export const OFFER_URL = process.env.NEXT_PUBLIC_OFFER_URL ?? '';
 

@@ -1,6 +1,6 @@
 import Foundation
 
-/// Правила проживания — из backend/data/legal-documents.json (скан владельца, 12.10.2026).
+/// Правила проживания — скан владельца, 12.10.2026 (на сервере: data/kvarc-guest-app.json).
 /// Настоящий текст; в демо-режиме приложение показывает его без сервера.
 enum DemoLegal {
     static let rules = LegalDocument(

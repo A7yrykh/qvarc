@@ -65,7 +65,7 @@ Next.js 15, порт 3200. Поиск по датам и гостям, выбо�
 `data/kvarc-rooms.json` — категории, описания, удобства и фото с кварц.рус (собрано 12.10.2026), время заезда и выезда и основной тариф «Проживание с завтраком» (отмена за сутки бесплатно, позже — стоимость первой ночи). Фото лежат в `apps/booking/public/rooms/`.
 
 ```bash
-DATABASE_URL=... npx tsx apps/api/src/cli/import-rooms.ts qvarc-uvildy data/kvarc-rooms.json
+DATABASE_URL=... npx tsx apps/api/src/cli/import-rooms.ts kvarc data/kvarc-rooms.json
 ```
 
 Повторный запуск обновляет категории по коду и добавляет недостающие номера, ничего не удаляя. Цен на сайте нет: их задают в админке, в «Ценах и ограничениях».
