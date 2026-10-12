@@ -36,6 +36,7 @@ export function normalizePhone(input: string): string | null {
 @Injectable()
 export class GuestAuthService {
   private readonly ipLimit: RateLimiter;
+  private readonly testCode?: string;
 
   constructor(
     @Inject(DB) private readonly db: Database,
@@ -44,6 +45,7 @@ export class GuestAuthService {
     private readonly audit: AuditService,
   ) {
     this.ipLimit = new RateLimiter(20 * config.rateLimitFactor, 10 * 60_000);
+    this.testCode = config.guestTestCode;
   }
 
   private phoneOrThrow(raw: string) {
@@ -53,7 +55,7 @@ export class GuestAuthService {
   }
 
   async requestCode(propertyId: string, rawPhone: string, ip: string | null) {
-    if (!this.sms.enabled) throw new ServiceUnavailableException({ message: 'Вход по SMS пока не подключён. Позвоните администратору.', code: 'sms_unavailable' });
+    if (!this.sms.enabled && !this.testCode) throw new ServiceUnavailableException({ message: 'Вход по SMS пока не подключён. Позвоните администратору.', code: 'sms_unavailable' });
     this.ipLimit.check(`otp:${ip ?? '-'}`);
     const phone = this.phoneOrThrow(rawPhone);
     const recent = await this.db
@@ -67,12 +69,13 @@ export class GuestAuthService {
     if (recent[0] && Date.now() - new Date(recent[0].created_at).getTime() < 60_000) throw tooMany('Код уже отправлен. Новый можно запросить через минуту.');
     if (recent.length >= 5) throw tooMany();
 
-    const code = String(randomInt(0, 1_000_000)).padStart(6, '0');
+    // Проверка без SMS: на тестовом сервере код постоянный и никуда не отправляется
+    const code = this.testCode ?? String(randomInt(0, 1_000_000)).padStart(6, '0');
     await this.db
       .insertInto('guest_otp')
       .values({ property_id: propertyId, phone_e164: phone, code_hash: hash(`${phone}:${code}`), expires_at: new Date(Date.now() + OTP_TTL_MS), ip })
       .execute();
-    await this.sms.send(phone, `Кварц: код для входа ${code}. Никому его не сообщайте.`);
+    if (!this.testCode) await this.sms.send(phone, `Кварц: код для входа ${code}. Никому его не сообщайте.`);
     return { sent: true, expiresInSeconds: OTP_TTL_MS / 1000 };
   }
 

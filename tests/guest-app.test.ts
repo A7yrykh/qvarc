@@ -131,6 +131,19 @@ describe('гостевое приложение', () => {
     expect(back.headers.location).toBe('qvarc://payment-return');
   });
 
+  it('тестовый код входа работает без SMS', async () => {
+    const { createApp } = await import('../apps/api/src/main');
+    const { TEST_DB } = await import('./helpers');
+    const t = await createApp({ databaseUrl: TEST_DB, cookieSecure: false, sessionHours: 1, bookingSiteUrl: 'http://book.test', apiPublicUrl: 'http://api.test', payments: { provider: 'sandbox', sandboxSecret: 's' }, jobs: false, rateLimitFactor: 100, guestSms: 'off', guestTestCode: '246810' });
+    await t.init();
+    const h = request(t.getHttpServer());
+    await h.post(`${G}/auth/otp/request`).send({ phone: '+79007770000' }).expect(200);
+    const r = await h.post(`${G}/auth/otp/verify`).send({ phone: '+79007770000', code: '246810' });
+    expect(r.status).toBe(200);
+    expect(r.body.accessToken).toBeTruthy();
+    await t.close();
+  });
+
   it('токен обновления одноразовый: повтор старого закрывает все сессии гостя', async () => {
     const t = await signIn('+79004443322');
     const r1 = await http.post(`${G}/auth/refresh`).send({ refreshToken: t.refreshToken }).expect(200);

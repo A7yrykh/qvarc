@@ -20,6 +20,8 @@ export interface AppConfig {
   rateLimitFactor: number;
   /** SMS с кодом входа в гостевое приложение: log — код в журнал сервера (только разработка), off — вход выключен. */
   guestSms: 'log' | 'off';
+  /** Постоянный код входа в приложение для проверки без SMS (6 цифр). Только вне рабочей среды. */
+  guestTestCode?: string;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
@@ -48,6 +50,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const guestSms = (env.GUEST_SMS ?? (env.NODE_ENV === 'production' ? 'off' : 'log')) as AppConfig['guestSms'];
   if (guestSms !== 'log' && guestSms !== 'off') throw new Error(`Неизвестный GUEST_SMS: ${guestSms}`);
   if (guestSms === 'log' && env.NODE_ENV === 'production') throw new Error('GUEST_SMS=log пишет коды входа в журнал, в рабочей среде нельзя');
+  const guestTestCode = env.GUEST_TEST_CODE || undefined;
+  if (guestTestCode && !/^\d{6}$/.test(guestTestCode)) throw new Error('GUEST_TEST_CODE: 6 цифр');
+  if (guestTestCode && env.NODE_ENV === 'production') throw new Error('GUEST_TEST_CODE нельзя включать в рабочей среде');
   return {
     databaseUrl,
     cookieSecure: env.COOKIE_SECURE !== 'false',
@@ -58,5 +63,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     jobs: env.JOBS !== 'false',
     rateLimitFactor: 1,
     guestSms,
+    guestTestCode,
   };
 }
