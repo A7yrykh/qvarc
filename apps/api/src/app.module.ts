@@ -22,6 +22,7 @@ import { PaymentsController } from './payments/payments.controller';
 import { PaymentsService } from './payments/payments.service';
 import { PAYMENT_PROVIDER } from './payments/provider';
 import { SandboxProvider } from './payments/sandbox.provider';
+import { SberProvider } from './payments/sber.provider';
 import { PublicController } from './public/public.controller';
 import { PublicService } from './public/public.service';
 
@@ -49,7 +50,7 @@ export class AppModule {
         HoldsService,
         PaymentsService,
         PublicService,
-        { provide: PAYMENT_PROVIDER, useFactory: () => new SandboxProvider(config.payments.sandboxSecret, config.apiPublicUrl) },
+        { provide: PAYMENT_PROVIDER, useFactory: () => (config.payments.sber ? new SberProvider(config.payments.sber) : new SandboxProvider(config.payments.sandboxSecret, config.apiPublicUrl)) },
         { provide: APP_GUARD, useClass: AuthGuard },
         { provide: APP_FILTER, useClass: ErrorFilter },
       ],

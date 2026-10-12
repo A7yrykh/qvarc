@@ -2,6 +2,7 @@ import type { INestApplication } from '@nestjs/common';
 import { Client } from 'pg';
 import request from 'supertest';
 import { bootstrapProperty } from '../apps/api/src/cli/bootstrap';
+import type { AppConfig } from '../apps/api/src/config';
 import { createApp } from '../apps/api/src/main';
 import { createDb } from '../packages/db/src';
 import { migrate } from '../packages/db/scripts/migrate';
@@ -18,7 +19,7 @@ export async function resetDb() {
   await migrate(TEST_DB, () => undefined);
 }
 
-export async function setup() {
+export async function setup(payments: AppConfig['payments'] = { provider: 'sandbox', sandboxSecret: 'test-secret' }) {
   await resetDb();
   const db = createDb(TEST_DB, 20);
   const ids = await bootstrapProperty(db, {
@@ -36,7 +37,7 @@ export async function setup() {
     sessionHours: 1,
     bookingSiteUrl: 'http://book.test',
     apiPublicUrl: 'http://api.test',
-    payments: { provider: 'sandbox', sandboxSecret: 'test-secret' },
+    payments,
     jobs: false,
     rateLimitFactor: 100,
   });

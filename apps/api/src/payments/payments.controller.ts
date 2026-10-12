@@ -28,6 +28,15 @@ export class PaymentsController {
     return this.payments.handleWebhook(req.headers as Record<string, string>, req.rawBody);
   }
 
+  /** Сбер по умолчанию присылает уведомление GET-запросом с параметрами в адресе */
+  @Public()
+  @Get('public/v1/payments/webhook')
+  @HttpCode(200)
+  webhookGet(@Req() req: Request) {
+    const qs = req.originalUrl.includes('?') ? req.originalUrl.slice(req.originalUrl.indexOf('?') + 1) : '';
+    return this.payments.handleWebhook(req.headers as Record<string, string>, Buffer.from(qs));
+  }
+
   @Get('admin/v1/bookings/:id/payments')
   @RequirePerms('payment.read')
   list(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() u: StaffUser) {

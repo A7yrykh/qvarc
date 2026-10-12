@@ -10,6 +10,16 @@ import { PAYMENT_PROVIDER, type PaymentProvider, type ProviderStatus } from './p
 
 type Purpose = 'prepayment' | 'balance';
 
+/** Тело уведомления для журнала: JSON как есть, параметры формы или адреса (Сбер) — объектом */
+function asJsonText(raw: string) {
+  try {
+    JSON.parse(raw);
+    return raw;
+  } catch {
+    return JSON.stringify(Object.fromEntries(new URLSearchParams(raw)));
+  }
+}
+
 @Injectable()
 export class PaymentsService {
   private readonly log = new Logger('Payments');
@@ -155,7 +165,7 @@ export class PaymentsService {
         provider_event_id: ev.eventId,
         payment_id: payment?.id ?? null,
         event_type: ev.type,
-        payload: rawBody.toString('utf8'),
+        payload: asJsonText(rawBody.toString('utf8')),
         signature_valid: true,
       })
       .onConflict((oc) => oc.columns(['provider', 'provider_event_id']).doNothing())

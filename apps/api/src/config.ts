@@ -1,3 +1,5 @@
+import type { SberConfig } from './payments/sber.provider';
+
 export interface AppConfig {
   databaseUrl: string;
   cookieSecure: boolean;
@@ -7,9 +9,10 @@ export interface AppConfig {
   /** Внешний адрес API: на него эквайер отправляет уведомления и с него открывается тестовая страница оплаты */
   apiPublicUrl: string;
   payments: {
-    provider: 'sandbox';
+    provider: 'sandbox' | 'sber';
     /** Секрет подписи уведомлений тестового провайдера. Настоящие ключи эквайера только в переменных окружения. */
     sandboxSecret: string;
+    sber?: SberConfig;
   };
   /** Фоновые задачи (снятие просроченных удержаний). В тестах выключены, задачи вызываются напрямую. */
   jobs: boolean;
@@ -21,7 +24,22 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const databaseUrl = env.DATABASE_URL;
   if (!databaseUrl) throw new Error('DATABASE_URL не задан');
   const provider = (env.PAYMENT_PROVIDER ?? 'sandbox') as AppConfig['payments']['provider'];
-  if (provider !== 'sandbox') throw new Error(`Неизвестный PAYMENT_PROVIDER: ${provider}`);
+  if (provider !== 'sandbox' && provider !== 'sber') throw new Error(`Неизвестный PAYMENT_PROVIDER: ${provider}`);
+  let sber: SberConfig | undefined;
+  if (provider === 'sber') {
+    if (!env.SBER_USERNAME || !env.SBER_PASSWORD) throw new Error('Для оплаты через Сбер нужны SBER_USERNAME и SBER_PASSWORD');
+    const format = env.SBER_API_FORMAT ?? 'json';
+    if (format !== 'json' && format !== 'form') throw new Error('SBER_API_FORMAT: json или form');
+    sber = {
+      apiUrl: (env.SBER_API_URL ?? 'https://ecomtest.sberbank.ru/ecomm/gw/partner/api/v1/').replace(/\/?$/, '/'),
+      userName: env.SBER_USERNAME,
+      password: env.SBER_PASSWORD,
+      format,
+      callbackSecret: env.SBER_CALLBACK_SECRET || undefined,
+      callbackUrl: env.SBER_CALLBACK_URL || undefined,
+      sessionTimeoutSecs: Number(env.SBER_SESSION_TIMEOUT_SECS ?? 1200),
+    };
+  }
   if (provider === 'sandbox' && env.NODE_ENV === 'production' && env.ALLOW_SANDBOX_PAYMENTS !== 'true') {
     throw new Error('Тестовый провайдер оплаты нельзя включать в рабочей среде');
   }
@@ -31,7 +49,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     sessionHours: Number(env.SESSION_HOURS ?? 12),
     bookingSiteUrl: (env.BOOKING_SITE_URL ?? 'http://localhost:3200').replace(/\/$/, ''),
     apiPublicUrl: (env.API_PUBLIC_URL ?? 'http://localhost:3000').replace(/\/$/, ''),
-    payments: { provider, sandboxSecret: env.SANDBOX_WEBHOOK_SECRET ?? 'sandbox-dev-secret' },
+    payments: { provider, sandboxSecret: env.SANDBOX_WEBHOOK_SECRET ?? 'sandbox-dev-secret', sber },
     jobs: env.JOBS !== 'false',
     rateLimitFactor: 1,
   };
