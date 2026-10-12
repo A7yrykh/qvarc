@@ -184,10 +184,11 @@ export default function BookingView() {
                     <td style={{ padding: '6px 0' }}>
                       {rub(p.amount_minor)} <span className={`badge tone-${PAY_STATUS[p.status]?.tone ?? 'muted'}`}>{PAY_STATUS[p.status]?.label ?? p.status}</span>
                       {p.method === 'guest_deposit' && <span className="muted" style={{ fontSize: 12 }}> с депозита</span>}
+                      {p.provider === 'travelline' && <span className="muted" style={{ fontSize: 12 }}> в TravelLine{p.method === 'sbp' ? ', СБП' : p.method === 'online_card' ? ', картой' : p.method === 'bank_transfer' ? ', переводом' : ''}</span>}
                       {p.refunded_minor > 0 && <div className="muted" style={{ fontSize: 12 }}>возвращено {rub(p.refunded_minor)}</div>}
                     </td>
                     <td style={{ padding: '6px 0', textAlign: 'right' }}>
-                      {p.status === 'succeeded' && p.method !== 'guest_deposit' && p.refunded_minor < p.amount_minor && can(me, 'payment.refund') && (
+                      {p.status === 'succeeded' && p.method !== 'guest_deposit' && p.provider !== 'travelline' && p.refunded_minor < p.amount_minor && can(me, 'payment.refund') && (
                         <button className="btn" disabled={busy} onClick={() => refund(p)}>Вернуть</button>
                       )}
                     </td>

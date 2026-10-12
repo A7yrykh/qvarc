@@ -115,6 +115,7 @@ export const STATUS: Record<string, { label: string; tone: string }> = {
 };
 
 export const CHANNEL: Record<string, string> = {
+  travelline: 'TravelLine',
   direct_site: 'Сайт',
   front_desk: 'Ресепшен',
   phone: 'Телефон',
