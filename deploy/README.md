@@ -13,14 +13,15 @@
 ## Установка
 
 1. В DNS кварц.рус три записи A (admin, book, api) на IP сервера. Без них Caddy не получит сертификаты.
-2. На сервере:
+2. На сервере от root (можно из консоли в панели Timeweb):
    ```sh
-   curl -fsSL https://get.docker.com | sh
-   git clone https://github.com/A7yrykh/qvarc.git && cd qvarc/deploy
-   cp .env.example .env && nano .env      # пароли и ключи только здесь
-   mkdir -p import                        # выгрузки TravelLine: rate_plans.xlsx и bookings.xlsx
-   ./setup.sh
+   curl -fsSL https://raw.githubusercontent.com/A7yrykh/qvarc/main/deploy/install.sh -o install.sh
+   nohup bash install.sh почта@владельца main > install.log 2>&1 &
+   tail -f install.log                    # ждать строку «ГОТОВО», 15–30 минут
    ```
+   `install.sh` ставит Docker, подкачку и файрвол, берёт код из GitHub в `/opt/qvarc`, сам создаёт пароли и ключи в `/opt/qvarc/deploy/.env` и запускает `setup.sh`.
+   Пока нет DNS, адреса временные: `admin.<IP через дефисы>.sslip.io`. Потом поменять `*_HOST` в `.env` и выполнить `docker compose up -d`.
+   Выгрузки TravelLine (`rate_plans.xlsx`, `bookings.xlsx`) положить в `/opt/qvarc/deploy/import` и повторить `./setup.sh`.
 3. Войти в админку почтой и паролем владельца из `.env`.
 
 `setup.sh` можно запускать повторно: объект второй раз не создаётся, брони TravelLine без дублей, цены TravelLine заменяются.
