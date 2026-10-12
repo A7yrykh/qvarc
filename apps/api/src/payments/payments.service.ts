@@ -250,6 +250,67 @@ export class PaymentsService {
     }
   }
 
+  /** Депозиты гостя (сезонный депозит по оферте), которые ещё можно зачесть в оплату брони */
+  availableDeposits(propertyId: string, guestId: string) {
+    return this.db
+      .selectFrom('guest_deposit as d')
+      .innerJoin('booking as b', 'b.id', 'd.source_booking_id')
+      .select(['d.id', 'd.amount_minor', 'd.balance_minor', 'd.season', 'd.created_at', 'b.number as source_number'])
+      .where('d.property_id', '=', propertyId)
+      .where('d.guest_id', '=', guestId)
+      .where('d.balance_minor', '>', 0)
+      .orderBy('d.created_at')
+      .execute();
+  }
+
+  /**
+   * Зачёт депозита гостя в оплату брони: платёж «с депозита» без эквайера, баланс депозита уменьшается.
+   * Как и онлайн-оплата, достаточная сумма подтверждает бронь, ожидающую оплаты.
+   */
+  async applyDeposit(input: { propertyId: string; bookingId: string; depositId: string; amountMinor: number; userId: string }) {
+    return this.db.transaction().execute(async (trx) => {
+      await setActor(trx, input.userId, 'app', 'Зачёт депозита');
+      const b = await trx.selectFrom('booking').selectAll().where('id', '=', input.bookingId).where('property_id', '=', input.propertyId).forUpdate().executeTakeFirst();
+      if (!b) throw new NotFoundException('Бронь не найдена');
+      if (!['pending_payment', 'confirmed', 'checked_in', 'pending_confirmation'].includes(b.status)) throw new ConflictException('Бронь в этом статусе оплатить нельзя');
+      const d = await trx.selectFrom('guest_deposit').selectAll().where('id', '=', input.depositId).where('property_id', '=', input.propertyId).forUpdate().executeTakeFirst();
+      if (!d) throw new NotFoundException('Депозит не найден');
+      if (d.guest_id !== b.booker_guest_id) throw new ConflictException('Депозит принадлежит другому гостю');
+      if (input.amountMinor > Number(d.balance_minor)) throw new UnprocessableEntityException('Сумма больше остатка депозита');
+      const due = b.total_minor - (await this.paidMinor(trx, b.id));
+      if (input.amountMinor > due) throw new UnprocessableEntityException('Сумма больше остатка к оплате по брони');
+
+      const payment = await trx
+        .insertInto('payment')
+        .values({
+          property_id: b.property_id,
+          booking_id: b.id,
+          purpose: due === b.total_minor && input.amountMinor < b.total_minor ? 'prepayment' : 'balance',
+          method: 'guest_deposit',
+          provider: null,
+          status: 'succeeded',
+          amount_minor: input.amountMinor,
+          idempotency_key: `deposit:${randomUUID()}`,
+          paid_at: new Date(),
+          created_by: input.userId,
+        })
+        .returningAll()
+        .executeTakeFirstOrThrow();
+      await trx.updateTable('guest_deposit').set({ balance_minor: Number(d.balance_minor) - input.amountMinor }).where('id', '=', d.id).execute();
+      await trx.insertInto('guest_deposit_use').values({ deposit_id: d.id, payment_id: payment.id, amount_minor: input.amountMinor, created_by: input.userId }).execute();
+      const { paid } = await this.recomputePaymentState(trx, b.id);
+      await this.audit.write(
+        { propertyId: b.property_id, actorType: 'user', actorId: input.userId, action: 'payment.deposit_offset', entity: 'payment', entityId: payment.id, after: { bookingId: b.id, depositId: d.id, amountMinor: input.amountMinor } },
+        trx,
+      );
+      if (b.status === 'pending_payment' && paid >= b.prepayment_due_minor) {
+        await trx.updateTable('booking').set({ status: 'confirmed', hold_expires_at: null }).where('id', '=', b.id).execute();
+        await this.queueConfirmation(trx, b.id, b.property_id, b.booker_guest_id);
+      }
+      return payment;
+    });
+  }
+
   /** Поздняя оплата: возвращает истёкшую бронь, если её номер или другой номер категории свободен. */
   private async reinstate(trx: Database, bookingId: string) {
     const stay = await trx.selectFrom('booking_stay').selectAll().where('booking_id', '=', bookingId).forUpdate().executeTakeFirstOrThrow();

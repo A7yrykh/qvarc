@@ -107,6 +107,26 @@ describe('загрузка номеров с сайта', () => {
     const card = await owner.get(`/admin/v1/bookings/${booking.id}`);
     expect(card.body.deposit).toMatchObject({ amount_minor: paid, balance_minor: paid, season: 'Тестовый сезон' });
 
+    // Депозит зачитывается в новую бронь того же гостя
+    const guestId = card.body.booker_guest_id;
+    const next = await owner.post('/admin/v1/bookings', {
+      accommodationTypeId: comfort.id, ratePlanId: plan.id, arrival: addDays(today, 20), departure: addDays(today, 22), adults: 2, childrenAges: [],
+      status: 'pending_payment', channelCode: 'phone', idempotencyKey: randomUUID(), guestId,
+    });
+    expect(next.status).toBe(201);
+    const nb = await owner.get(`/admin/v1/bookings/${next.body.id}`);
+    expect(nb.body.available_deposits).toHaveLength(1);
+    const dep = nb.body.available_deposits[0];
+    const tooMuch = await owner.post(`/admin/v1/bookings/${next.body.id}/deposit-offsets`, { depositId: dep.id, amountMinor: paid + 1 });
+    expect(tooMuch.status).toBe(422);
+    const off = await owner.post(`/admin/v1/bookings/${next.body.id}/deposit-offsets`, { depositId: dep.id, amountMinor: paid });
+    expect(off.status).toBe(201);
+    const after = await owner.get(`/admin/v1/bookings/${next.body.id}`);
+    expect(after.body).toMatchObject({ paid_minor: paid, status: 'confirmed', payment_state: 'partially_paid' });
+    expect(after.body.available_deposits).toHaveLength(0);
+    const pays = await owner.get(`/admin/v1/bookings/${next.body.id}/payments`);
+    expect(pays.body[0]).toMatchObject({ method: 'guest_deposit', status: 'succeeded', amount_minor: paid });
+
     // Возвращаем условия из файла для остальных проверок
     await importRooms(db, 'test', data);
   });

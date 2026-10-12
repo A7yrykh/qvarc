@@ -15,6 +15,7 @@ interface Booking {
   allowed_transitions: string[];
   registration: Registration;
   deposit: { amount_minor: number; balance_minor: number; season: string; created_at: string } | null;
+  available_deposits?: { id: string; amount_minor: number; balance_minor: number; season: string; source_number: string }[];
 }
 interface Registration {
   guestsSubmittedAt: string | null; rulesVersion: string | null; rulesAcceptedAt: string | null;
@@ -82,6 +83,15 @@ export default function BookingView() {
     const reason = window.prompt('Причина возврата (попадёт в журнал)');
     if (!reason) return;
     run(() => post(`/payments/${p.id}/refunds`, { amountMinor, reason }), 'Возврат отправлен');
+  };
+
+  const applyDeposit = (d: NonNullable<Booking['available_deposits']>[number]) => {
+    const max = Math.min(d.balance_minor, b.balance_minor) / 100;
+    const sum = window.prompt(`Зачесть с депозита, ₽ (не больше ${max.toLocaleString('ru-RU')})`, String(max));
+    if (sum === null) return;
+    const amountMinor = toMinor(sum);
+    if (!Number.isFinite(amountMinor) || amountMinor <= 0) { setError('Сумма: введите число больше нуля'); return; }
+    run(() => post(`/bookings/${b.id}/deposit-offsets`, { depositId: d.id, amountMinor }), 'Депозит зачтён в оплату');
   };
 
   const changeStatus = (to: string) => {
@@ -159,6 +169,12 @@ export default function BookingView() {
               <b style={{ marginLeft: 'auto' }}>{rub(b.deposit.balance_minor)}{b.deposit.balance_minor < b.deposit.amount_minor && ` из ${rub(b.deposit.amount_minor)}`}</b>
             </div>
           )}
+          {editable && b.balance_minor > 0 && (b.available_deposits ?? []).map((d) => (
+            <div key={d.id} className="row" style={{ background: 'var(--warn-bg)', padding: '6px 8px', borderRadius: 6 }}>
+              <span style={{ fontSize: 13 }}>Депозит гостя {rub(d.balance_minor)}<span className="muted"> · {d.season.toLowerCase()}, бронь {d.source_number}</span></span>
+              <button className="btn" style={{ marginLeft: 'auto' }} disabled={busy} onClick={() => applyDeposit(d)}>Зачесть</button>
+            </div>
+          ))}
           {b.prepayment_due_minor > 0 && <div className="row"><span className="muted">Предоплата по тарифу</span><span style={{ marginLeft: 'auto' }}>{rub(b.prepayment_due_minor)}</span></div>}
           {payments.length > 0 && (
             <table className="list" style={{ border: 0, marginTop: 6 }}>
@@ -167,10 +183,11 @@ export default function BookingView() {
                   <tr key={p.id}>
                     <td style={{ padding: '6px 0' }}>
                       {rub(p.amount_minor)} <span className={`badge tone-${PAY_STATUS[p.status]?.tone ?? 'muted'}`}>{PAY_STATUS[p.status]?.label ?? p.status}</span>
+                      {p.method === 'guest_deposit' && <span className="muted" style={{ fontSize: 12 }}> с депозита</span>}
                       {p.refunded_minor > 0 && <div className="muted" style={{ fontSize: 12 }}>возвращено {rub(p.refunded_minor)}</div>}
                     </td>
                     <td style={{ padding: '6px 0', textAlign: 'right' }}>
-                      {p.status === 'succeeded' && p.refunded_minor < p.amount_minor && can(me, 'payment.refund') && (
+                      {p.status === 'succeeded' && p.method !== 'guest_deposit' && p.refunded_minor < p.amount_minor && can(me, 'payment.refund') && (
                         <button className="btn" disabled={busy} onClick={() => refund(p)}>Вернуть</button>
                       )}
                     </td>

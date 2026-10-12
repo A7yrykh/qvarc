@@ -427,6 +427,15 @@ export interface GuestDeposit {
   source_booking_id: string;
 }
 
+export interface GuestDepositUse {
+  amount_minor: number;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  deposit_id: string;
+  id: Generated<string>;
+  payment_id: string;
+}
+
 export interface GuestDocument {
   created_at: Generated<Timestamp>;
   created_by: string | null;
@@ -931,6 +940,7 @@ export interface DB {
   guest_app_session: GuestAppSession;
   guest_consent: GuestConsent;
   guest_deposit: GuestDeposit;
+  guest_deposit_use: GuestDepositUse;
   guest_document: GuestDocument;
   guest_merge_log: GuestMergeLog;
   guest_note: GuestNote;
