@@ -18,6 +18,10 @@ import { GuestJobsService } from './guest/guest-jobs.service';
 import { GuestGuard } from './guest/guest.guard';
 import { NoSmsProvider, SMS_PROVIDER, TestSmsProvider } from './guest/sms.provider';
 import { GuestStayService } from './guest/stay.service';
+import { CatalogService } from './guest/catalog.service';
+import { FoodService } from './guest/food.service';
+import { RestaurantService } from './guest/restaurant.service';
+import { AdminRentalController, AdminRestaurantController, GuestCatalogController, GuestOrdersController } from './guest/services.controller';
 import { GuestsController } from './guests/guests.controller';
 import { GuestsService } from './guests/guests.service';
 import { AuthController } from './iam/auth.controller';
@@ -51,6 +55,7 @@ export class AppModule {
       controllers: [
         AuthController, UsersController, InventoryController, GuestsController, BookingsController, PaymentsController, PublicController,
         GuestAuthController, GuestContentController, GuestBookingsController, CheckinController, AdminCheckinController,
+        GuestCatalogController, GuestOrdersController, AdminRestaurantController, AdminRentalController,
       ],
       providers: [
         AuthService,
@@ -68,6 +73,9 @@ export class AppModule {
         GuestStayService,
         CheckinService,
         GuestJobsService,
+        RestaurantService,
+        FoodService,
+        CatalogService,
         { provide: SMS_PROVIDER, useFactory: () => (config.guest.sms === 'test' ? new TestSmsProvider() : new NoSmsProvider()) },
         { provide: PAYMENT_PROVIDER, useFactory: () => (config.payments.sber ? new SberProvider(config.payments.sber) : new SandboxProvider(config.payments.sandboxSecret, config.apiPublicUrl)) },
         { provide: APP_GUARD, useClass: AuthGuard },

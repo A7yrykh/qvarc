@@ -324,20 +324,25 @@ export interface FolioLine {
 
 export interface FoodOrder {
   booking_id: string | null;
+  cancel_reason: string | null;
   comment: string | null;
   created_at: Generated<Timestamp>;
   fulfilment: string;
+  guest_account_id: string | null;
   guest_id: string | null;
   id: Generated<string>;
   idempotency_key: string | null;
   iiko_order_id: string | null;
   number: string;
   payment_mode: string;
+  payment_status: Generated<string>;
   property_id: string;
+  restaurant_id: string | null;
   status: Generated<string>;
   table_id: string | null;
   total_minor: number;
   unit_id: string | null;
+  updated_at: Generated<Timestamp>;
 }
 
 export interface FoodOrderItem {
@@ -515,6 +520,7 @@ export interface Menu {
   is_active: Generated<boolean>;
   name: string;
   property_id: string;
+  restaurant_id: string | null;
   room_delivery: Generated<boolean>;
 }
 
@@ -524,13 +530,16 @@ export interface MenuItem {
   description: string | null;
   id: Generated<string>;
   iiko_product_id: string | null;
+  is_active: Generated<boolean>;
   is_available: Generated<boolean>;
   menu_id: string;
   name: string;
   photo_key: string | null;
+  photos: Generated<Json>;
   price_minor: number;
   section: string;
   sort_order: Generated<number>;
+  volume_ml: number | null;
   weight_g: number | null;
 }
 
@@ -752,11 +761,34 @@ export interface Refund {
   status: Generated<string>;
 }
 
+export interface Restaurant {
+  accepts_delivery: Generated<boolean>;
+  auto_confirm_reservations: Generated<boolean>;
+  description: string | null;
+  id: Generated<string>;
+  is_active: Generated<boolean>;
+  name: string;
+  phone: string | null;
+  photos: Generated<Json>;
+  property_id: string;
+  seating_minutes: Generated<number>;
+  turnover_minutes: Generated<number>;
+}
+
+export interface RestaurantHours {
+  closes_at: string;
+  last_seating: string | null;
+  opens_at: string;
+  restaurant_id: string;
+  weekday: number;
+}
+
 export interface RestaurantTable {
   id: Generated<string>;
   is_active: Generated<boolean>;
   name: string;
   property_id: string;
+  restaurant_id: string | null;
   seats: number;
   zone: string | null;
 }
@@ -777,31 +809,45 @@ export interface RolePermission {
 
 export interface Service {
   cancellation_policy: Json | null;
+  cancellation_text: string | null;
   category: string;
+  close_time: Generated<string>;
   daily_capacity: number | null;
   description: string | null;
   duration_minutes: number | null;
   equipment_type_id: string | null;
+  hold_minutes: Generated<number>;
   id: Generated<string>;
   is_active: Generated<boolean>;
+  max_quantity: Generated<number>;
   min_age: number | null;
   name: string;
+  open_time: Generated<string>;
   photos: Generated<Json>;
   price_minor: number;
   pricing: string;
   property_id: string;
+  requires_confirmation: Generated<boolean>;
   requires_slot: Generated<boolean>;
   responsible_role_id: string | null;
+  rules: string | null;
+  slot_step_minutes: Generated<number>;
+  sort_order: Generated<number>;
 }
 
 export interface ServiceBooking {
   amount_minor: number;
   assignee_id: string | null;
   booking_id: string | null;
+  cancelled_at: Timestamp | null;
   comment: string | null;
   created_at: Generated<Timestamp>;
+  guest_account_id: string | null;
   guest_id: string;
+  hold_expires_at: Timestamp | null;
   id: Generated<string>;
+  idempotency_key: string | null;
+  payment_status: Generated<string>;
   period: string | null;
   quantity: Generated<number>;
   service_id: string;
@@ -853,15 +899,21 @@ export interface TableAssignment {
 }
 
 export interface TableReservation {
+  allergies: string | null;
   booking_id: string | null;
   comment: string | null;
   created_at: Generated<Timestamp>;
+  guest_account_id: string | null;
   guest_id: string;
   id: Generated<string>;
+  idempotency_key: string | null;
+  number: string | null;
   party_size: number;
   period: string;
   property_id: string;
+  restaurant_id: string | null;
   status: Generated<string>;
+  wishes: string | null;
 }
 
 export interface Translation {
@@ -947,6 +999,8 @@ export interface DB {
   rate_plan_type: RatePlanType;
   rate_rule: RateRule;
   refund: Refund;
+  restaurant: Restaurant;
+  restaurant_hours: RestaurantHours;
   restaurant_table: RestaurantTable;
   role: Role;
   role_permission: RolePermission;
