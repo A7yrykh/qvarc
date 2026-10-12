@@ -143,7 +143,9 @@ export interface Booking {
 export interface BookingGuest {
   booking_id: string;
   guest_id: string;
+  is_child: Generated<boolean>;
   is_primary: Generated<boolean>;
+  position: Generated<number>;
   stay_id: string | null;
 }
 
@@ -225,6 +227,23 @@ export interface ChannelMapping {
   external_id: string;
   id: Generated<string>;
   local_id: string;
+}
+
+export interface CheckinRecord {
+  admin_approval_reason: string | null;
+  admin_approval_required: Generated<boolean>;
+  admin_approved_at: Timestamp | null;
+  admin_approved_by: string | null;
+  booking_id: string;
+  completed_at: Timestamp | null;
+  consent_at: Timestamp | null;
+  documents_submitted_at: Timestamp | null;
+  guests_submitted_at: Timestamp | null;
+  rules_accepted_at: Timestamp | null;
+  rules_version: string | null;
+  started_at: Generated<Timestamp>;
+  unit_ready_at: Timestamp | null;
+  unit_ready_by: string | null;
 }
 
 export interface EquipmentConditionLog {
@@ -375,6 +394,14 @@ export interface Guest {
   updated_at: Generated<Timestamp>;
 }
 
+export interface GuestAccount {
+  created_at: Generated<Timestamp>;
+  id: Generated<string>;
+  phone_e164: string;
+  property_id: string;
+  verified_at: Timestamp;
+}
+
 export interface GuestConsent {
   granted_at: Timestamp;
   guest_id: string;
@@ -387,11 +414,13 @@ export interface GuestConsent {
 }
 
 export interface GuestDocument {
+  booking_id: string | null;
   created_at: Generated<Timestamp>;
   created_by: string | null;
   doc_type: string;
   guest_id: string;
   id: Generated<string>;
+  number_last4: string | null;
   payload_enc: Buffer;
   retain_until: string;
   scan_key: string | null;
@@ -413,6 +442,31 @@ export interface GuestNote {
   guest_id: string;
   id: Generated<string>;
   kind: Generated<string>;
+}
+
+export interface GuestOtp {
+  attempts: Generated<number>;
+  code_hash: Buffer;
+  consumed_at: Timestamp | null;
+  created_at: Generated<Timestamp>;
+  expires_at: Timestamp;
+  id: Generated<string>;
+  max_attempts: Generated<number>;
+  phone_e164: string;
+  property_id: string;
+  request_ip: string | null;
+}
+
+export interface GuestSession {
+  access_expires_at: Timestamp;
+  access_hash: Buffer;
+  account_id: string;
+  created_at: Generated<Timestamp>;
+  expires_at: Timestamp;
+  id: Generated<string>;
+  refresh_hash: Buffer;
+  revoked_at: Timestamp | null;
+  user_agent: string | null;
 }
 
 export interface Integration {
@@ -848,6 +902,7 @@ export interface DB {
   channel: Channel;
   channel_event: ChannelEvent;
   channel_mapping: ChannelMapping;
+  checkin_record: CheckinRecord;
   equipment_condition_log: EquipmentConditionLog;
   equipment_reservation: EquipmentReservation;
   equipment_type: EquipmentType;
@@ -861,10 +916,13 @@ export interface DB {
   funnel_event: FunnelEvent;
   gift_certificate: GiftCertificate;
   guest: Guest;
+  guest_account: GuestAccount;
   guest_consent: GuestConsent;
   guest_document: GuestDocument;
   guest_merge_log: GuestMergeLog;
   guest_note: GuestNote;
+  guest_otp: GuestOtp;
+  guest_session: GuestSession;
   integration: Integration;
   invoice_reference: InvoiceReference;
   lock_device: LockDevice;
