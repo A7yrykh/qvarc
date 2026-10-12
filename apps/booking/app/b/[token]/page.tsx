@@ -62,14 +62,13 @@ export default function ManagePage() {
     try { setB(await api<Manage>('POST', `/${PROPERTY}/bookings/${token}/cancel`)); setConfirmCancel(false); } catch (e) { setError(errorText(e)); } finally { setBusy(false); }
   };
 
-  if (!b) return error ? <div className="stack"><div className="brand">КВАРЦ</div><div className="error">{error}</div></div> : <div className="muted">Загрузка…</div>;
+  if (!b) return error ? <div className="error">{error}</div> : <div className="muted">Загрузка…</div>;
   const st = STATUS[b.status] ?? { label: b.status, bg: '#eee', fg: 'var(--muted)' };
   const nights = diffDays(b.arrival, b.departure);
   const balance = b.totalMinor - b.paidMinor;
 
   return (
     <div className="stack" style={{ maxWidth: 640 }}>
-      <div className="brand">КВАРЦ</div>
       <div className="row">
         <h1 style={{ margin: 0 }}>Бронь {b.number}</h1>
         <span className="status" style={{ background: st.bg, color: st.fg }}>{st.label}</span>

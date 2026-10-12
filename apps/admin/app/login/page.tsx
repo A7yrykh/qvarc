@@ -24,7 +24,7 @@ export default function LoginPage() {
   return (
     <main style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: 16 }}>
       <form onSubmit={submit} className="card stack" style={{ width: '100%', maxWidth: 360 }}>
-        <div style={{ fontWeight: 700, letterSpacing: '0.24em', fontSize: 20 }}>QVARC</div>
+        <img src="/brand/kvarc-logo.svg" alt="Кварц, место отдыха" style={{ height: 52, width: 'auto' }} />
         <div className="muted">Вход для сотрудников</div>
         {error && <div className="error">{error}</div>}
         <label>Почта<input type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>

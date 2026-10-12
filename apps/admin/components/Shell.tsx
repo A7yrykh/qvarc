@@ -29,7 +29,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
     <MeContext.Provider value={me}>
       <div className="shell">
         <nav className="side">
-          <div className="brand">QVARC</div>
+          <div className="brand"><img src="/brand/kvarc-logo-light.svg" alt="Кварц" /></div>
           {NAV.filter((n) => can(me, n.perm)).map((n) => (
             <Link key={n.href} href={n.href} className={path.startsWith(n.href) ? 'active' : ''}>{n.label}</Link>
           ))}

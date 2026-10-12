@@ -82,7 +82,6 @@ function Booking() {
   return (
     <div className="stack">
       <div>
-        <div className="brand">КВАРЦ</div>
         <h1>Бронирование на Увильдах</h1>
         <div className="muted small">Заезд с {info.checkInTime}, выезд до {info.checkOutTime}. Цены указаны за весь номер.</div>
       </div>
@@ -126,7 +125,7 @@ function Booking() {
           {rooms.map((r) => (
             <div key={r.accommodationType.id} className="card room">
               <div className="photo">
-                {r.accommodationType.photos?.[0]?.url ? <img src={r.accommodationType.photos[0].url} alt={r.accommodationType.name} /> : 'Фото скоро появится'}
+                {r.accommodationType.photos?.[0]?.url ? <img src={r.accommodationType.photos[0].url} alt={r.accommodationType.name} /> : <img className="ill" src="/brand/lake.png" alt="" />}
               </div>
               <div className="stack" style={{ gap: 10 }}>
                 <div>
