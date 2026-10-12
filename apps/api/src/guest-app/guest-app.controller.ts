@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Headers, HttpCode, Param, Post, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, Headers, HttpCode, Param, Post, Put, Query, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { z } from 'zod';
 import { parse, uuid } from '../common/validation';
 import { ClientIp, Public } from '../iam/auth.decorators';
+import { CheckinService, DocumentsBody, GuestsBody, RulesBody } from './checkin.service';
 import { GuestAppService } from './guest-app.service';
 import { GuestAuthService } from './guest-auth.service';
 
@@ -22,6 +23,7 @@ export class GuestAppController {
   constructor(
     private readonly auth: GuestAuthService,
     private readonly svc: GuestAppService,
+    private readonly checkin: CheckinService,
   ) {}
 
   /** Сюда банк возвращает гостя после оплаты; приложение ловит адрес qvarc:// и проверяет платёж. */
@@ -77,6 +79,27 @@ export class GuestAppController {
   @Get(':property/bookings/my')
   async myBookings(@Param('property') code: string, @Headers('authorization') a?: string) {
     return this.svc.myBookings(await this.guest(code, a));
+  }
+
+  @Get(':property/checkin/:id')
+  async checkinState(@Param('property') code: string, @Param('id') id: string, @Headers('authorization') a?: string) {
+    return this.checkin.state(await this.guest(code, a), parse(uuid, id));
+  }
+
+  @Put(':property/checkin/:id/guests')
+  async checkinGuests(@Param('property') code: string, @Param('id') id: string, @Body() b: unknown, @ClientIp() ip: string | null, @Headers('authorization') a?: string) {
+    return this.checkin.submitGuests(await this.guest(code, a), parse(uuid, id), parse(GuestsBody, b), ip);
+  }
+
+  @Put(':property/checkin/:id/documents')
+  async checkinDocuments(@Param('property') code: string, @Param('id') id: string, @Body() b: unknown, @ClientIp() ip: string | null, @Headers('authorization') a?: string) {
+    return this.checkin.submitDocuments(await this.guest(code, a), parse(uuid, id), parse(DocumentsBody, b), ip);
+  }
+
+  @Post(':property/checkin/:id/rules')
+  @HttpCode(200)
+  async checkinRules(@Param('property') code: string, @Param('id') id: string, @Body() b: unknown, @ClientIp() ip: string | null, @Headers('authorization') a?: string) {
+    return this.checkin.acceptRules(await this.guest(code, a), parse(uuid, id), parse(RulesBody, b), ip);
   }
 
   @Post(':property/payments')

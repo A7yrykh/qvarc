@@ -41,6 +41,7 @@ export async function setup(payments: AppConfig['payments'] = { provider: 'sandb
     jobs: false,
     rateLimitFactor: 100,
     guestSms: 'log',
+    documentsKey: Buffer.alloc(32, 7),
   });
   await app.init();
   app.getHttpServer().setMaxListeners(50);

@@ -1,6 +1,7 @@
 import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
 import { parse } from '../common/validation';
 import { ClientIp, CurrentUser, RequirePerms, type StaffUser } from '../iam/auth.decorators';
+import { CheckinService } from '../guest-app/checkin.service';
 import { AvailabilityService } from './availability.service';
 import { CalendarQuery, ChangeDatesBody, CreateBookingBody, ListQuery, MoveBody, QuoteBody, SearchQuery, StatusBody } from './bookings.schemas';
 import { BookingsService } from './bookings.service';
@@ -10,6 +11,7 @@ export class BookingsController {
   constructor(
     private readonly bookings: BookingsService,
     private readonly availability: AvailabilityService,
+    private readonly checkin: CheckinService,
   ) {}
 
   @Get('availability')
@@ -42,8 +44,10 @@ export class BookingsController {
 
   @Get('bookings/:id')
   @RequirePerms('booking.read')
-  get(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() u: StaffUser) {
-    return this.bookings.get(u, id);
+  async get(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() u: StaffUser) {
+    const b = await this.bookings.get(u, id);
+    // Онлайн-регистрация из приложения: состав гостей и документы (только тип и последние цифры)
+    return { ...b, registration: await this.checkin.summary(id) };
   }
 
   @Post('bookings')

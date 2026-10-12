@@ -22,6 +22,8 @@ export interface AppConfig {
   guestSms: 'log' | 'off';
   /** Постоянный код входа в приложение для проверки без SMS (6 цифр). Только вне рабочей среды. */
   guestTestCode?: string;
+  /** Ключ шифрования паспортных данных гостей (32 байта, base64). Без него приём документов выключен. */
+  documentsKey?: Buffer;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
@@ -53,6 +55,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const guestTestCode = env.GUEST_TEST_CODE || undefined;
   if (guestTestCode && !/^\d{6}$/.test(guestTestCode)) throw new Error('GUEST_TEST_CODE: 6 цифр');
   if (guestTestCode && env.NODE_ENV === 'production') throw new Error('GUEST_TEST_CODE нельзя включать в рабочей среде');
+  const documentsKey = env.DOCUMENTS_KEY ? Buffer.from(env.DOCUMENTS_KEY, 'base64') : undefined;
+  if (documentsKey && documentsKey.length !== 32) throw new Error('DOCUMENTS_KEY: 32 байта в base64 (openssl rand -base64 32)');
   return {
     databaseUrl,
     cookieSecure: env.COOKIE_SECURE !== 'false',
@@ -64,5 +68,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     rateLimitFactor: 1,
     guestSms,
     guestTestCode,
+    documentsKey,
   };
 }

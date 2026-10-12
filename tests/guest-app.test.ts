@@ -160,3 +160,64 @@ describe('гостевое приложение', () => {
     await http.post(`${G}/auth/refresh`).send({ refreshToken: t2.refreshToken }).expect(401);
   });
 });
+
+describe('онлайн-регистрация', () => {
+  it('гости, документы и правила: шаги отмечаются, паспорт хранится зашифрованным, админка видит регистрацию', async () => {
+    const created = await http.post('/public/v1/test/bookings').send({
+      accommodationTypeId: ids.comfort, ratePlanId: ids.plan, arrival: addDays(today, 20), departure: addDays(today, 22), adults: 2,
+      guest: { lastName: 'Смирнов', firstName: 'Иван', phone: '+79001112244', email: 'smirnov@example.com' },
+      consents: { pdProcessing: true }, idempotencyKey: randomUUID(),
+    });
+    expect(created.status, JSON.stringify(created.body)).toBe(201);
+    const t = await signIn('+79001112244');
+    const auth = { authorization: `Bearer ${t.accessToken}` };
+    const booking = (await http.get(`${G}/bookings/my`).set(auth)).body[0];
+    const C = `${G}/checkin/${booking.id}`;
+
+    let s = (await http.get(C).set(auth).expect(200)).body;
+    expect(s).toMatchObject({ status: 'registration_not_started', expectedGuests: { adults: 2, children: 0 }, rulesVersion: '2026-10-12' });
+    expect(s.steps).toMatchObject({ guests: false, documents: false, rules: false, payment: false, unitReady: false });
+
+    // Чужой гость не видит регистрацию
+    const other = await signIn('+79001119999');
+    await http.get(C).set('authorization', `Bearer ${other.accessToken}`).expect(404);
+
+    const tooMany = await http.put(`${C}/guests`).set(auth).send({ guests: [1, 2, 3].map((i) => ({ firstName: `Г${i}`, lastName: 'Смирнов', isChild: false })) });
+    expect(tooMany.status).toBe(409);
+    await http.put(`${C}/guests`).set(auth).send({ guests: [
+      { firstName: 'Иван', lastName: 'Смирнов', middleName: 'Петрович', isChild: false },
+      { firstName: 'Петя', lastName: 'Смирнов', isChild: true },
+    ] }).expect(200);
+    s = (await http.get(C).set(auth)).body;
+    expect(s.status).toBe('registration_in_progress');
+    expect(s.guests.map((g: { firstName: string; isPrimary: boolean; isChild: boolean }) => [g.firstName, g.isPrimary, g.isChild])).toEqual([['Иван', true, false], ['Петя', false, true]]);
+
+    const [ivan, petya] = s.guests.map((g: { id: string }) => g.id);
+    const passport = { docType: 'ru_passport', series: '7512', number: '345678', issuedBy: 'ГУ МВД России по Челябинской области', issueDate: '2015-04-01', divisionCode: '740-001', birthPlace: 'г. Челябинск', registrationAddress: 'г. Челябинск, ул. Ленина, 1' };
+    const bad = await http.put(`${C}/documents`).set(auth).send({ documents: [{ ...passport, bookingGuestId: ivan, divisionCode: '740001' }] });
+    expect(bad.status).toBe(400);
+    expect(bad.body.error).toMatchObject({ code: 'validation_error', message: 'Код подразделения: 000-000' });
+    await http.put(`${C}/documents`).set(auth).send({ documents: [
+      { ...passport, bookingGuestId: ivan },
+      { docType: 'birth_certificate', series: 'IV-ИВ', number: '123456', bookingGuestId: petya },
+    ] }).expect(200);
+    s = (await http.get(C).set(auth)).body;
+    expect(s.steps.documents).toBe(true);
+    expect(s.guests[0].document).toEqual({ docType: 'ru_passport', numberMasked: '•••• 5678' });
+    const stored = await db.selectFrom('guest_document').select(['payload_enc']).where('guest_id', '=', ivan).executeTakeFirstOrThrow();
+    expect(Buffer.from(stored.payload_enc).toString('utf8')).not.toContain('345678');
+
+    const old = await http.post(`${C}/rules`).set(auth).send({ rulesVersion: '2020-01-01', rulesAccepted: true, personalDataConsent: true });
+    expect(old.body.error.code).toBe('rules_outdated');
+    await http.post(`${C}/rules`).set(auth).send({ rulesVersion: '2026-10-12', rulesAccepted: true, personalDataConsent: true }).expect(200);
+    s = (await http.get(C).set(auth)).body;
+    expect(s).toMatchObject({ status: 'registration_complete', statusLabel: 'Регистрация завершена' });
+    expect(s.accessBlockers.map((x: { code: string }) => x.code)).toEqual(['payment_required', 'unit_not_ready']);
+
+    const owner = await login(app, OWNER.email, OWNER.password);
+    const card = (await owner.get(`/admin/v1/bookings/${booking.id}`)).body;
+    expect(card.registration.rulesVersion).toBe('2026-10-12');
+    expect(card.registration.guests).toHaveLength(2);
+    expect(JSON.stringify(card.registration)).not.toContain('345678');
+  });
+});

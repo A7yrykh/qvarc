@@ -140,10 +140,21 @@ export interface Booking {
   utm: Json | null;
 }
 
+export interface BookingCheckin {
+  booking_id: string;
+  guests_submitted_at: Timestamp | null;
+  pd_consent_at: Timestamp | null;
+  rules_accepted_at: Timestamp | null;
+  rules_version: string | null;
+  updated_at: Generated<Timestamp>;
+}
+
 export interface BookingGuest {
   booking_id: string;
   guest_id: string;
+  is_child: Generated<boolean>;
   is_primary: Generated<boolean>;
+  sort_order: Generated<number>;
   stay_id: string | null;
 }
 
@@ -411,6 +422,7 @@ export interface GuestDocument {
   doc_type: string;
   guest_id: string;
   id: Generated<string>;
+  number_masked: string | null;
   payload_enc: Buffer;
   retain_until: string;
   scan_key: string | null;
@@ -880,6 +892,7 @@ export interface DB {
   audit_log: AuditLog;
   availability_block: AvailabilityBlock;
   booking: Booking;
+  booking_checkin: BookingCheckin;
   booking_guest: BookingGuest;
   booking_item: BookingItem;
   booking_night_price: BookingNightPrice;

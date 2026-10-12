@@ -13,7 +13,13 @@ interface Booking {
   stays: Stay[]; nights: { booking_stay_id: string; night: string; amount_minor: number }[];
   history: { id: number; from_status: string | null; to_status: string; changed_at: string; reason: string | null; source: string }[];
   allowed_transitions: string[];
+  registration: Registration;
 }
+interface Registration {
+  guestsSubmittedAt: string | null; rulesVersion: string | null; rulesAcceptedAt: string | null;
+  guests: { id: string; firstName: string; lastName: string; middleName: string | null; isChild: boolean; isPrimary: boolean; document: { docType: string; numberMasked: string } | null }[];
+}
+const DOC_TYPE: Record<string, string> = { ru_passport: 'паспорт РФ', foreign_passport: 'иностранный паспорт', birth_certificate: 'свидетельство о рождении' };
 interface Unit { id: string; name: string; accommodation_type_id: string; is_active: boolean }
 interface Payment { id: string; purpose: string; method: string; provider: string | null; status: string; amount_minor: number; refunded_minor: number; paid_at: string | null; created_at: string }
 
@@ -117,6 +123,24 @@ export default function BookingPage() {
           <div>{b.email ?? <span className="muted">e-mail скрыт или не указан</span>}</div>
           <div className="muted">Взрослых: {b.adults}{b.children_ages.length > 0 && `, детей: ${b.children_ages.length} (${b.children_ages.join(', ')} лет)`}</div>
           {b.special_requests && <div>Пожелания: {b.special_requests}</div>}
+        </div>
+        <div className="card stack" style={{ gap: 6 }}>
+          <h2>Онлайн-регистрация</h2>
+          {!b.registration.guestsSubmittedAt && !b.registration.rulesAcceptedAt ? (
+            <div className="muted">Гость ещё не заполнял регистрацию в приложении</div>
+          ) : (
+            <>
+              {b.registration.guests.map((g) => (
+                <div key={g.id} className="row">
+                  <span>{g.lastName} {g.firstName} {g.middleName ?? ''}{g.isChild && <span className="muted"> · ребёнок</span>}</span>
+                  <span className={g.document ? '' : 'muted'} style={{ marginLeft: 'auto' }}>{g.document ? `${DOC_TYPE[g.document.docType] ?? g.document.docType} ${g.document.numberMasked}` : 'нет документа'}</span>
+                </div>
+              ))}
+              <div className={b.registration.rulesAcceptedAt ? '' : 'muted'}>
+                {b.registration.rulesAcceptedAt ? `Правила приняты ${new Date(b.registration.rulesAcceptedAt).toLocaleString('ru-RU')} (версия ${b.registration.rulesVersion})` : 'Правила ещё не приняты'}
+              </div>
+            </>
+          )}
         </div>
         <div className="card stack" style={{ gap: 6 }}>
           <h2>Проживание</h2>

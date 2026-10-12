@@ -8,6 +8,7 @@ import { DbModule } from './common/db.module';
 import { ErrorFilter } from './common/errors';
 import { CONFIG } from './common/tokens';
 import type { AppConfig } from './config';
+import { CheckinService } from './guest-app/checkin.service';
 import { GuestAppController } from './guest-app/guest-app.controller';
 import { GuestAppService } from './guest-app/guest-app.service';
 import { GuestAuthService } from './guest-app/guest-auth.service';
@@ -56,6 +57,7 @@ export class AppModule {
         PublicService,
         GuestAuthService,
         GuestAppService,
+        CheckinService,
         { provide: SMS_SENDER, useFactory: () => (config.guestSms === 'log' ? new LogSmsSender() : new DisabledSmsSender()) },
         { provide: PAYMENT_PROVIDER, useFactory: () => (config.payments.sber ? new SberProvider(config.payments.sber) : new SandboxProvider(config.payments.sandboxSecret, config.apiPublicUrl)) },
         { provide: APP_GUARD, useClass: AuthGuard },
