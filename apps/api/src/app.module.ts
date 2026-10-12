@@ -20,6 +20,7 @@ import { AuthGuard } from './iam/auth.guard';
 import { AuthService } from './iam/auth.service';
 import { UsersController } from './iam/users.controller';
 import { UsersService } from './iam/users.service';
+import { ImportsController } from './imports/imports.controller';
 import { InventoryController } from './inventory/inventory.controller';
 import { InventoryService } from './inventory/inventory.service';
 import { RateGridService } from './inventory/rate-grid.service';
@@ -43,7 +44,7 @@ export class AppModule {
     return {
       module: AppModule,
       imports: [configModule, DbModule],
-      controllers: [AuthController, UsersController, InventoryController, GuestsController, BookingsController, PaymentsController, PublicController, GuestAppController],
+      controllers: [AuthController, UsersController, InventoryController, GuestsController, BookingsController, PaymentsController, PublicController, GuestAppController, ImportsController],
       providers: [
         AuthService,
         UsersService,

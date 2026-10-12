@@ -17,6 +17,7 @@ const NAV = [
   { href: '/prices', label: 'Цены и ограничения', perm: 'rates.read' },
   { href: '/settings/rooms', label: 'Номера', perm: 'inventory.read' },
   { href: '/settings/rates', label: 'Тарифы', perm: 'rates.read' },
+  { href: '/settings/import', label: 'Перенос из TravelLine', perm: 'users.manage' },
 ];
 
 export function Shell({ children }: { children: React.ReactNode }) {
@@ -36,6 +37,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           ))}
           <div className="grow" />
           <div className="who">{me.fullName}</div>
+          {!DEMO && <Link href="/settings/account" className={path.startsWith('/settings/account') ? 'active' : ''}>Мой пароль</Link>}
           <a href="#" onClick={async (e) => { e.preventDefault(); await post('/auth/logout'); window.location.href = asset('/login'); }}>Выйти</a>
         </nav>
         <main className="main">

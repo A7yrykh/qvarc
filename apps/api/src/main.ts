@@ -11,7 +11,8 @@ export async function createApp(config: AppConfig) {
   app.disable('x-powered-by');
   // За обратным прокси (Caddy в docker-сети) адрес гостя берётся из X-Forwarded-For только от прокси из частной сети
   app.set('trust proxy', process.env.TRUST_PROXY ?? 'loopback');
-  app.useBodyParser('json', { limit: '1mb' });
+  // 10 МБ — ради загрузки выгрузок TravelLine из админки (файлы в base64)
+  app.useBodyParser('json', { limit: '10mb' });
   app.useBodyParser('urlencoded', { limit: '64kb', extended: false });
   app.enableShutdownHooks();
   return app;

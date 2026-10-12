@@ -104,4 +104,16 @@ describe('перенос из TravelLine', () => {
     expect(paymentMethod('Безнал для юр.лиц')).toBe('bank_transfer');
     expect(paymentMethod('При заселении')).toBe('on_site');
   });
+
+  it('загрузка из админки: только владелец, повтор без дублей, понятная ошибка на чужой файл', async () => {
+    const owner = await login(app, OWNER.email, OWNER.password);
+    const b64 = (f: string) => readFileSync(f).toString('base64');
+    const res = await owner.post('/admin/v1/imports/travelline', { ratePlans: b64('tests/fixtures/travelline-rates.xlsx'), bookings: b64('tests/fixtures/travelline-bookings.xlsx') });
+    expect(res.status).toBe(200);
+    expect(res.body.period).toEqual({ from: '2026-12-30', to: '2027-01-02' });
+    expect(res.body.bookings).toMatchObject({ created: 0, skipped: 8 });
+    const wrong = await owner.post('/admin/v1/imports/travelline', { bookings: b64('tests/fixtures/travelline-rates.xlsx') });
+    expect(wrong.status).toBe(400);
+    expect((await owner.post('/admin/v1/imports/travelline', {})).status).toBe(400);
+  });
 });
