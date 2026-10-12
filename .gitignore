@@ -4,3 +4,4 @@ dist/
 *.log
 .next/
 next-env.d.ts
+*.tsbuildinfo
