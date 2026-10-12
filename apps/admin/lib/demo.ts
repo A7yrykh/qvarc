@@ -332,6 +332,12 @@ const ROUTES: [string, RegExp, Handler][] = [
     s.plans.push(p);
     return p;
   }],
+  ['PUT', /^\/rate-plans\/([^/]+)$/, (s, m, _p, b) => {
+    const p = s.plans.find((x) => x.id === m[1]) ?? fail(404, 'Тариф не найден');
+    if (s.plans.some((x) => x.code === b.code && x.id !== p.id)) fail(409, 'Тариф с таким кодом уже есть');
+    Object.assign(p, { code: b.code, name: b.name, meal_plan: b.mealPlan, is_refundable: b.isRefundable, cancellation_policy: b.cancellationPolicy, prepayment_policy: b.prepaymentPolicy, deposit_policy: b.depositPolicy ?? null, is_public: b.isPublic, is_active: b.isActive, accommodation_type_ids: b.accommodationTypeIds });
+    return p;
+  }],
   ['GET', /^\/rate-rules$/, (s, _m, p) => s.rules
     .filter((r) => r.rate_plan_id === q(p, 'ratePlanId') && (!p.get('from') || (r.from < q(p, 'to') && q(p, 'from') < r.to)))
     .sort((a, b) => b.priority - a.priority || b.created_at.localeCompare(a.created_at))

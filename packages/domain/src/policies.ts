@@ -77,9 +77,9 @@ export interface DepositPolicy {
 const MMDD = /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 
 export function validateDepositPolicy(p: DepositPolicy): DepositPolicy {
-  if (!Number.isInteger(p.days_before) || p.days_before < 1) throw new Error('days_before депозита должно быть целым ≥ 1');
+  if (!Number.isInteger(p.days_before) || p.days_before < 1) throw new Error('Депозит: срок отмены — целое число дней, не меньше 1');
   if (!Array.isArray(p.seasons) || p.seasons.length === 0) throw new Error('Не заданы сезоны депозита');
-  for (const s of p.seasons) if (!MMDD.test(s.from) || !MMDD.test(s.to)) throw new Error(`Сезон «${s.name}»: даты в формате ММ-ДД`);
+  for (const s of p.seasons) if (!MMDD.test(s.from) || !MMDD.test(s.to)) throw new Error(`Сезон «${s.name}»: укажите даты начала и конца, например 01.06 и 31.08`);
   return p;
 }
 

@@ -80,6 +80,12 @@ export class InventoryController {
     return this.inv.createRatePlan({ user, ip }, parse(RatePlanBody, b));
   }
 
+  @Put('rate-plans/:id')
+  @RequirePerms('rates.write')
+  updateRatePlan(@Param('id', ParseUUIDPipe) id: string, @Body() b: unknown, @CurrentUser() user: StaffUser, @ClientIp() ip: string | null) {
+    return this.inv.updateRatePlan({ user, ip }, id, parse(RatePlanBody, b));
+  }
+
   @Put('rate-plans/:id/terms')
   @RequirePerms('rates.write')
   updateRatePlanTerms(@Param('id', ParseUUIDPipe) id: string, @Body() b: unknown, @CurrentUser() user: StaffUser, @ClientIp() ip: string | null) {

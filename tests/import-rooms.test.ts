@@ -130,4 +130,37 @@ describe('загрузка номеров с сайта', () => {
     // Возвращаем условия из файла для остальных проверок
     await importRooms(db, 'test', data);
   });
+
+  it('администратор меняет тариф целиком: название, условия, категории; выключенный тариф не продаётся на сайте', async () => {
+    const owner = await login(app, OWNER.email, OWNER.password);
+    const plan = ((await owner.get('/admin/v1/rate-plans')).body as { id: string; code: string; name: string }[])[0];
+    const types = (await owner.get('/admin/v1/accommodation-types')).body as { id: string; code: string }[];
+    const comfort = types.find((t) => t.code === 'comfort')!;
+    const body = {
+      code: plan.code, name: 'Летний с завтраком', mealPlan: 'breakfast', isRefundable: true, isPublic: true, isActive: true,
+      cancellationPolicy: [{ days_before: 7, penalty_pct: 0 }, { days_before: 0, penalty_pct: 50 }],
+      prepaymentPolicy: { pct: 50, due: 'at_booking' },
+      depositPolicy: { days_before: 10, seasons: [{ name: 'Лето', from: '06-01', to: '08-31' }] },
+      accommodationTypeIds: [comfort.id],
+    };
+    const r = await owner.put(`/admin/v1/rate-plans/${plan.id}`, body);
+    expect(r.status, JSON.stringify(r.body)).toBe(200);
+    expect(r.body).toMatchObject({ name: 'Летний с завтраком', prepayment_policy: { pct: 50 }, deposit_policy: { days_before: 10 }, accommodation_type_ids: [comfort.id] });
+    const listed = ((await owner.get('/admin/v1/rate-plans')).body as { id: string; accommodation_type_ids: string[] }[]).find((p) => p.id === plan.id)!;
+    expect(listed.accommodation_type_ids).toEqual([comfort.id]);
+
+    const bad = await owner.put(`/admin/v1/rate-plans/${plan.id}`, { ...body, depositPolicy: { days_before: 10, seasons: [{ name: 'Лето', from: '1.6', to: '31.8' }] } });
+    expect(bad.status).toBe(422);
+
+    const arrival = addDays(today, 40);
+    const offers = async () => (await http.get(`/public/v1/test/offers?arrival=${arrival}&departure=${addDays(arrival, 2)}&adults=2`)).body;
+    await owner.post('/admin/v1/rate-rules', { ratePlanId: plan.id, accommodationTypeId: comfort.id, from: arrival, to: addDays(arrival, 2), priceMinor: 500_000 });
+    expect(JSON.stringify(await offers())).toContain('Летний с завтраком');
+    await owner.put(`/admin/v1/rate-plans/${plan.id}`, { ...body, isActive: false }).then((x) => expect(x.status).toBe(200));
+    expect(JSON.stringify(await offers())).not.toContain('Летний с завтраком');
+
+    // Возвращаем тариф как был для остальных проверок
+    await owner.put(`/admin/v1/rate-plans/${plan.id}`, { ...body, name: plan.name, isActive: true, accommodationTypeIds: types.map((t) => t.id) });
+    await importRooms(db, 'test', data);
+  });
 });

@@ -226,6 +226,43 @@ export class InventoryService {
     });
   }
 
+  /** Тариф целиком из админки: название, питание, условия, категории, продажа на сайте. Цены задаются правилами (rate_rule). */
+  async updateRatePlan(a: Actor, planId: string, input: z.infer<typeof RatePlanBody>) {
+    try {
+      validateCancellationPolicy(input.cancellationPolicy);
+      if (input.depositPolicy) validateDepositPolicy(input.depositPolicy);
+    } catch (e) {
+      throw new UnprocessableEntityException((e as Error).message);
+    }
+    return this.db.transaction().execute(async (trx) => {
+      await this.assertRatePlan(a.user.propertyId, planId, trx);
+      for (const t of input.accommodationTypeIds) await this.assertType(a.user.propertyId, t, trx);
+      const row = await trx
+        .updateTable('rate_plan')
+        .set({
+          code: input.code,
+          name: input.name,
+          meal_plan: input.mealPlan,
+          is_refundable: input.isRefundable,
+          cancellation_policy: JSON.stringify(input.cancellationPolicy),
+          prepayment_policy: JSON.stringify(input.prepaymentPolicy),
+          deposit_policy: input.depositPolicy ? JSON.stringify(input.depositPolicy) : null,
+          is_public: input.isPublic,
+          is_active: input.isActive,
+        })
+        .where('id', '=', planId)
+        .returningAll()
+        .executeTakeFirstOrThrow();
+      await trx.deleteFrom('rate_plan_type').where('rate_plan_id', '=', planId).execute();
+      await trx
+        .insertInto('rate_plan_type')
+        .values(input.accommodationTypeIds.map((t) => ({ rate_plan_id: planId, accommodation_type_id: t })))
+        .execute();
+      await this.log(a, 'rates.plan.update', 'rate_plan', planId, input, trx);
+      return { ...row, accommodation_type_ids: input.accommodationTypeIds };
+    });
+  }
+
   /** Условия отмены, предоплаты и депозита тарифа. Уже созданные брони считаются по новым условиям тарифа. */
   async updateRatePlanTerms(a: Actor, planId: string, input: Pick<z.infer<typeof RatePlanBody>, 'cancellationPolicy' | 'prepaymentPolicy' | 'depositPolicy'>) {
     try {
