@@ -1,0 +1,67 @@
+# QVARC
+
+Собственная система бронирования и управления «Места отдыха Кварц». Архитектура и план — в папке проекта `qvarc/` (документы 04–06).
+
+## Что готово (этап 1, ядро)
+
+- Вход сотрудников: пароли argon2id, серверные сессии, CSRF-защита, ограничение попыток входа.
+- 12 системных ролей из ТЗ с правами; доступ к контактам гостя только у ролей с правом `guest.contacts.read`.
+- Категории и номера, тарифы с условиями отмены и предоплаты, «Цены и ограничения» (цена, доплаты за взрослых и детей, мин./макс. срок, срок до заезда, закрытие продаж, заезда и выезда) по периодам, дням недели и приоритетам — по образцу TravelLine.
+- Закрытие номеров и категорий (ремонт, личное использование, стоп-продажа).
+- Поиск свободных вариантов с итоговой ценой, расчёт цены и предоплаты.
+- Брони: создание с автоматическим выбором номера, ключ идемпотентности, перенос в другой номер, изменение дат (продление и сокращение) с сохранением подтверждённых цен, смена статуса по допустимым переходам.
+- Шахматка: номера, брони, закрытия, долг по каждой брони.
+- Карточка гостя с историей, поиск.
+- Журнал аудита всех изменений и отказов в доступе, запрет удаления подтверждённых броней и изменения журнала на уровне базы.
+
+Двойная бронь одного номера невозможна: это гарантирует ограничение исключения PostgreSQL, проверено тестом с 10 одновременными бронями.
+
+## Запуск
+
+```bash
+npm ci
+docker compose up -d                 # или свой PostgreSQL 16
+cp .env.example .env && set -a && . ./.env && set +a
+npm run db:migrate
+QVARC_LEGAL_NAME="ИП ..." QVARC_PROPERTY_NAME="Место отдыха Кварц" \
+QVARC_OWNER_EMAIL=... QVARC_OWNER_NAME=... QVARC_OWNER_PASSWORD=... \
+  npx tsx apps/api/src/cli/bootstrap.ts
+npm run build && npm run start:api
+```
+
+## Тесты
+
+```bash
+npm run typecheck
+DATABASE_URL_TEST=... npm test        # тесты пересоздают схему тестовой базы
+```
+
+## Структура
+
+```
+apps/api/src/        NestJS API: iam, inventory, guests, bookings, common, cli
+packages/domain/src/ расчёт цены, ограничения тарифов, условия отмены и предоплаты (без базы)
+packages/db/         SQL-миграции, мигратор, типы Kysely (npm run db:types)
+tests/               интеграционные тесты на настоящем PostgreSQL
+```
+
+## API (этап 1)
+
+| Метод | Путь | Право |
+|---|---|---|
+| POST | /admin/v1/auth/login, /logout; GET /me | — |
+| GET/POST | /admin/v1/users | users.manage |
+| GET/POST/PUT | /admin/v1/accommodation-types, /units | inventory.read / inventory.write |
+| POST | /admin/v1/availability-blocks | inventory.write |
+| GET/POST | /admin/v1/rate-plans | rates.read / rates.write |
+| GET/POST/DELETE | /admin/v1/rate-rules | rates.read / rates.write |
+| GET | /admin/v1/availability?arrival&departure&adults&children | booking.read |
+| POST | /admin/v1/quotes | booking.read |
+| GET | /admin/v1/calendar?from&to | calendar.read |
+| GET/POST | /admin/v1/bookings | booking.read / booking.write |
+| GET | /admin/v1/bookings/:id | booking.read |
+| PATCH | /admin/v1/bookings/:id/unit, /dates | booking.write |
+| POST | /admin/v1/bookings/:id/status | booking.status |
+| GET/POST/PUT | /admin/v1/guests | guest.read / guest.write |
+
+Все суммы в копейках, даты в формате ГГГГ-ММ-ДД, выезд не включается в ночи.

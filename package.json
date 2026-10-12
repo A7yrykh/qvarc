@@ -1,0 +1,40 @@
+{
+  "name": "qvarc",
+  "private": true,
+  "version": "0.1.0",
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "db:migrate": "tsx packages/db/scripts/migrate.ts",
+    "db:types": "kysely-codegen --dialect postgres --out-file packages/db/src/schema.ts --exclude-pattern schema_migrations --date-parser string --type-mapping {\"int8\":\"number\",\"daterange\":\"string\",\"tstzrange\":\"string\"}",
+    "start:api": "node dist/apps/api/src/main.js"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.2.7",
+    "@nestjs/core": "^11.2.7",
+    "@nestjs/platform-express": "^11.2.7",
+    "argon2": "^0.45.1",
+    "cookie-parser": "^1.4.7",
+    "kysely": "^0.29.6",
+    "pg": "^8.23.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "zod": "^4.6.6"
+  },
+  "devDependencies": {
+    "@swc/core": "^1.16.18",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.5",
+    "@types/pg": "^8.23.1",
+    "@types/supertest": "^7.2.1",
+    "kysely-codegen": "^0.20.0",
+    "supertest": "^7.3.1",
+    "tsx": "^4.23.15",
+    "typescript": "5.9",
+    "unplugin-swc": "^2.0.0",
+    "vitest": "^5.0.4"
+  }
+}
