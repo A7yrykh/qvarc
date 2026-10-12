@@ -30,7 +30,16 @@ export async function setup() {
     ownerName: 'Владелец',
     ownerPassword: OWNER.password,
   });
-  const app = await createApp({ databaseUrl: TEST_DB, cookieSecure: false, sessionHours: 1 });
+  const app = await createApp({
+    databaseUrl: TEST_DB,
+    cookieSecure: false,
+    sessionHours: 1,
+    bookingSiteUrl: 'http://book.test',
+    apiPublicUrl: 'http://api.test',
+    payments: { provider: 'sandbox', sandboxSecret: 'test-secret' },
+    jobs: false,
+    rateLimitFactor: 100,
+  });
   await app.init();
   app.getHttpServer().setMaxListeners(50);
   return { app, db, ids };

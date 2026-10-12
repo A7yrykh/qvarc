@@ -6,11 +6,12 @@ import { AppModule } from './app.module';
 import { loadConfig, type AppConfig } from './config';
 
 export async function createApp(config: AppConfig) {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule.forRoot(config), { logger: ['error', 'warn'] });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule.forRoot(config), { logger: process.env.NODE_ENV === 'test' ? ['error', 'warn'] : ['error', 'warn', 'log'], rawBody: true });
   app.use(cookieParser());
   app.disable('x-powered-by');
   app.set('trust proxy', 'loopback');
   app.useBodyParser('json', { limit: '1mb' });
+  app.useBodyParser('urlencoded', { limit: '64kb', extended: false });
   app.enableShutdownHooks();
   return app;
 }

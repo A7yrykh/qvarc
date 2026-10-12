@@ -59,18 +59,25 @@ export class BookingsService {
     return { b, stay };
   }
 
-  async create(a: Actor, input: z.infer<typeof CreateBookingBody>) {
+  /** afterInsert выполняется в той же транзакции: например, ссылка гостя и согласия из модуля бронирования. */
+  async create(
+    a: Actor,
+    input: z.infer<typeof CreateBookingBody>,
+    afterInsert?: (trx: Database, ids: { bookingId: string; guestId: string }) => Promise<void>,
+  ) {
     return this.db.transaction().execute(async (trx) => {
       await setActor(trx, a.user?.id ?? null, a.source ?? 'app', input.overrideReason);
 
       if (input.idempotencyKey) {
         const existing = await trx
           .selectFrom('booking')
-          .select('id')
+          .select(['id', 'number', 'status', 'prepayment_due_minor', 'total_minor'])
           .where('idempotency_key', '=', input.idempotencyKey)
           .where('property_id', '=', a.propertyId)
           .executeTakeFirst();
-        if (existing) return { id: existing.id, duplicate: true };
+        if (existing) {
+          return { id: existing.id, number: existing.number, duplicate: true, status: existing.status, prepaymentDueMinor: existing.prepayment_due_minor, totalMinor: existing.total_minor };
+        }
       }
 
       // Брони одной категории оформляются по очереди: так выбор свободного номера всегда точен.
@@ -183,6 +190,7 @@ export class BookingsService {
       await trx.insertInto('booking_guest').values({ booking_id: booking.id, guest_id: guestId, stay_id: stay.id, is_primary: true }).execute();
       await trx.insertInto('folio').values({ booking_id: booking.id, payer_guest_id: guestId }).execute();
 
+      if (afterInsert) await afterInsert(trx, { bookingId: booking.id, guestId });
       await this.log(a, 'booking.create', booking.id, trx, undefined, {
         number,
         unitId,
@@ -191,7 +199,7 @@ export class BookingsService {
         totalMinor: q.totalMinor,
         overrideRestrictions: input.overrideRestrictions ? q.restrictions : undefined,
       });
-      return { id: booking.id, number, duplicate: false };
+      return { id: booking.id, number, duplicate: false, status: booking.status, prepaymentDueMinor: booking.prepayment_due_minor, totalMinor: booking.total_minor };
     });
   }
 
