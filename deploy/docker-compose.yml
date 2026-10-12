@@ -1,0 +1,80 @@
+# Рабочий сервер QVARC: база, API, админка, модуль бронирования, HTTPS и ночные копии базы.
+# Запуск и первичная загрузка: deploy/README.md
+name: qvarc
+x-app: &app
+  build: { context: .., dockerfile: Dockerfile }
+  image: qvarc:latest
+  restart: unless-stopped
+  env_file: .env
+  environment:
+    DATABASE_URL: postgres://qvarc:${POSTGRES_PASSWORD}@db:5432/qvarc
+    NODE_ENV: production
+    TRUST_PROXY: uniquelocal
+    BOOKING_SITE_URL: https://${BOOKING_HOST}
+    API_PUBLIC_URL: https://${API_HOST}
+  depends_on:
+    db: { condition: service_healthy }
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: qvarc
+      POSTGRES_DB: qvarc
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qvarc -d qvarc"]
+      interval: 5s
+      retries: 20
+
+  api:
+    <<: *app
+    # Миграции применяются при каждом запуске, уже применённые пропускаются
+    command: sh -c "npm run -s db:migrate && node dist/apps/api/src/main.js"
+    volumes: [./import:/import:ro]
+
+  admin:
+    <<: *app
+    working_dir: /app/apps/admin
+    command: npx next start -p 3100
+    depends_on: [api]
+
+  booking:
+    <<: *app
+    working_dir: /app/apps/booking
+    command: npx next start -p 3200
+    depends_on: [api]
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    env_file: .env
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [admin, booking, api]
+
+  # Копия базы каждую ночь в deploy/backups, хранится 14 дней
+  backup:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    volumes: [./backups:/backups]
+    entrypoint: >
+      sh -c 'while true; do
+        sleep $$(( $$(date -d "tomorrow 03:00" +%s) - $$(date +%s) ));
+        pg_dump -h db -U qvarc -Fc qvarc > /backups/qvarc-$$(date +%F).dump &&
+        find /backups -name "qvarc-*.dump" -mtime +14 -delete;
+      done'
+    depends_on:
+      db: { condition: service_healthy }
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

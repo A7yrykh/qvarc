@@ -9,7 +9,8 @@ export async function createApp(config: AppConfig) {
   const app = await NestFactory.create<NestExpressApplication>(AppModule.forRoot(config), { logger: process.env.NODE_ENV === 'test' ? ['error', 'warn'] : ['error', 'warn', 'log'], rawBody: true });
   app.use(cookieParser());
   app.disable('x-powered-by');
-  app.set('trust proxy', 'loopback');
+  // За обратным прокси (Caddy в docker-сети) адрес гостя берётся из X-Forwarded-For только от прокси из частной сети
+  app.set('trust proxy', process.env.TRUST_PROXY ?? 'loopback');
   app.useBodyParser('json', { limit: '1mb' });
   app.useBodyParser('urlencoded', { limit: '64kb', extended: false });
   app.enableShutdownHooks();

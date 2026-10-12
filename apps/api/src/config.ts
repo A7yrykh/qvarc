@@ -68,7 +68,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     sessionHours: Number(env.SESSION_HOURS ?? 12),
     bookingSiteUrl: (env.BOOKING_SITE_URL ?? 'http://localhost:3200').replace(/\/$/, ''),
     apiPublicUrl: (env.API_PUBLIC_URL ?? 'http://localhost:3000').replace(/\/$/, ''),
-    payments: { provider, sandboxSecret: env.SANDBOX_WEBHOOK_SECRET ?? 'sandbox-dev-secret', sber },
+    payments: { provider, sandboxSecret: env.SANDBOX_WEBHOOK_SECRET || 'sandbox-dev-secret', sber },
     jobs: env.JOBS !== 'false',
     rateLimitFactor: 1,
     mail: { mode: mailMode, smtpUrl, from: mailFrom },

@@ -1,0 +1,16 @@
+# HTTPS-сертификаты Caddy получает сам, когда адреса указывают на этот сервер
+{$ADMIN_HOST} {
+	encode gzip
+	reverse_proxy admin:3100
+}
+
+{$BOOKING_HOST} {
+	encode gzip
+	reverse_proxy booking:3200
+}
+
+# Гостевое приложение и уведомления банка об оплате
+{$API_HOST} {
+	encode gzip
+	reverse_proxy api:3000
+}
