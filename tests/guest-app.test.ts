@@ -93,6 +93,13 @@ describe('сведения о базе', () => {
     expect(r.body.source).toBeUndefined();
     expect((await http().get('/guest/v1/documents/nope')).status).toBe(404);
   });
+  it('политика обработки персональных данных', async () => {
+    const r = await http().get('/guest/v1/documents/privacy');
+    expect(r.status).toBe(200);
+    expect(r.body.title).toContain('Политика');
+    expect(r.body.sections.length).toBeGreaterThan(3);
+    expect((await http().get('/guest/v1/documents')).body.map((d: { code: string }) => d.code)).toEqual(['rules', 'privacy']);
+  });
 });
 
 describe('вход по SMS', () => {
