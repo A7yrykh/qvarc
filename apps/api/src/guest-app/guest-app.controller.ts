@@ -7,15 +7,15 @@ import { CheckinService, DocumentsBody, GuestsBody, RulesBody } from './checkin.
 import { GuestAppService } from './guest-app.service';
 import { GuestAuthService } from './guest-auth.service';
 
-const PhoneBody = z.object({ phone: z.string().min(10).max(20) });
-const VerifyBody = z.object({ phone: z.string().min(10).max(20), code: z.string().regex(/^\s*\d{6}\s*$/, 'Код из 6 цифр') });
+const EmailBody = z.object({ email: z.string().min(3).max(254) });
+const VerifyBody = z.object({ email: z.string().min(3).max(254), code: z.string().regex(/^\s*\d{6}\s*$/, 'Код из 6 цифр') });
 const RefreshBody = z.object({ refreshToken: z.string().min(20).max(200) });
 const PaymentBody = z.object({ purpose: z.string().max(40), targetId: uuid });
 const IdempotencyKey = z.string().min(8).max(100);
 
 /**
  * API гостевого приложения для iPhone. Адрес в приложении (QvarcAPIBaseURL): https://<api>/guest/v1/<код объекта>.
- * Вход по коду из SMS, дальше заголовок Authorization: Bearer <токен доступа>.
+ * Вход по коду из письма на e-mail гостя, дальше заголовок Authorization: Bearer <токен доступа>.
  */
 @Public()
 @Controller('guest/v1')
@@ -41,7 +41,7 @@ export class GuestAppController {
   @HttpCode(200)
   async requestCode(@Param('property') code: string, @Body() b: unknown, @ClientIp() ip: string | null) {
     const p = await this.svc.propertyByCode(code);
-    return this.auth.requestCode(p.id, parse(PhoneBody, b).phone, ip);
+    return this.auth.requestCode(p.id, parse(EmailBody, b).email, ip);
   }
 
   @Post(':property/auth/otp/verify')
@@ -49,7 +49,7 @@ export class GuestAppController {
   async verify(@Param('property') code: string, @Body() b: unknown, @ClientIp() ip: string | null) {
     const p = await this.svc.propertyByCode(code);
     const body = parse(VerifyBody, b);
-    return this.auth.verify(p.id, body.phone, body.code, ip);
+    return this.auth.verify(p.id, body.email, body.code, ip);
   }
 
   @Post(':property/auth/refresh')

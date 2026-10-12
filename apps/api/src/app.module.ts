@@ -12,7 +12,7 @@ import { CheckinService } from './guest-app/checkin.service';
 import { GuestAppController } from './guest-app/guest-app.controller';
 import { GuestAppService } from './guest-app/guest-app.service';
 import { GuestAuthService } from './guest-app/guest-auth.service';
-import { DisabledSmsSender, LogSmsSender, SMS_SENDER } from './guest-app/sms';
+import { DisabledMailSender, LogMailSender, MAIL_SENDER, SmtpMailSender } from './common/mail';
 import { GuestsController } from './guests/guests.controller';
 import { GuestsService } from './guests/guests.service';
 import { AuthController } from './iam/auth.controller';
@@ -58,7 +58,10 @@ export class AppModule {
         GuestAuthService,
         GuestAppService,
         CheckinService,
-        { provide: SMS_SENDER, useFactory: () => (config.guestSms === 'log' ? new LogSmsSender() : new DisabledSmsSender()) },
+        {
+          provide: MAIL_SENDER,
+          useFactory: () => (config.mail.mode === 'smtp' ? new SmtpMailSender(config.mail.smtpUrl!, config.mail.from) : config.mail.mode === 'log' ? new LogMailSender() : new DisabledMailSender()),
+        },
         { provide: PAYMENT_PROVIDER, useFactory: () => (config.payments.sber ? new SberProvider(config.payments.sber) : new SandboxProvider(config.payments.sandboxSecret, config.apiPublicUrl)) },
         { provide: APP_GUARD, useClass: AuthGuard },
         { provide: APP_FILTER, useClass: ErrorFilter },

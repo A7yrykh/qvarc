@@ -16,16 +16,16 @@ final class LiveBackend: Backend {
         set { api.onSessionExpired = newValue }
     }
 
-    private struct PhoneBody: Encodable { let phone: String }
-    private struct VerifyBody: Encodable { let phone: String; let code: String }
+    private struct EmailBody: Encodable { let email: String }
+    private struct VerifyBody: Encodable { let email: String; let code: String }
     private struct RefreshBody: Encodable { let refreshToken: String }
 
-    func requestCode(phone: String) async throws {
-        let _: Ignored = try await api.post("auth/otp/request", PhoneBody(phone: phone), auth: false)
+    func requestCode(email: String) async throws {
+        let _: Ignored = try await api.post("auth/otp/request", EmailBody(email: email), auth: false)
     }
 
-    func verify(phone: String, code: String) async throws {
-        let t: AuthTokens = try await api.post("auth/otp/verify", VerifyBody(phone: phone, code: code), auth: false)
+    func verify(email: String, code: String) async throws {
+        let t: AuthTokens = try await api.post("auth/otp/verify", VerifyBody(email: email, code: code), auth: false)
         api.setTokens(t)
     }
 

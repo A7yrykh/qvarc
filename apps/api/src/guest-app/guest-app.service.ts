@@ -108,9 +108,9 @@ export class GuestAppService {
       .where('b.status', 'not in', ['draft', 'expired'])
       .where((eb) =>
         eb.or([
-          eb.exists(eb.selectFrom('guest as g').select('g.id').whereRef('g.id', '=', 'b.booker_guest_id').where('g.phone_e164', '=', guest.phone)),
+          eb.exists(eb.selectFrom('guest as g').select('g.id').whereRef('g.id', '=', 'b.booker_guest_id').where('g.email', '=', guest.email)),
           eb.exists(
-            eb.selectFrom('booking_guest as bg').innerJoin('guest as g2', 'g2.id', 'bg.guest_id').select('g2.id').whereRef('bg.booking_id', '=', 'b.id').where('g2.phone_e164', '=', guest.phone),
+            eb.selectFrom('booking_guest as bg').innerJoin('guest as g2', 'g2.id', 'bg.guest_id').select('g2.id').whereRef('bg.booking_id', '=', 'b.id').where('g2.email', '=', guest.email),
           ),
         ]),
       )

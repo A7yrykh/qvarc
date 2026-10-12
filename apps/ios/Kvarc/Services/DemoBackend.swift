@@ -67,9 +67,9 @@ final class DemoBackend: Backend {
 
     // MARK: - Вход
 
-    func requestCode(phone: String) async throws { await pause() }
+    func requestCode(email: String) async throws { await pause() }
 
-    func verify(phone: String, code: String) async throws {
+    func verify(email: String, code: String) async throws {
         await pause()
         guard code.count == 6, code.allSatisfy(\.isNumber) else {
             throw APIError(status: 400, code: "invalid_code", message: "Код из 6 цифр. В демо-режиме подойдёт любой.")

@@ -5,7 +5,7 @@ import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { importGuestApp } from '../apps/api/src/cli/import-guest-app';
 import { importRooms } from '../apps/api/src/cli/import-rooms';
-import { SMS_SENDER, type LogSmsSender } from '../apps/api/src/guest-app/sms';
+import { MAIL_SENDER, type LogMailSender } from '../apps/api/src/common/mail';
 import { addDays, todayIn } from '../packages/domain/src';
 import type { Database } from '../packages/db/src';
 import { login, OWNER, setup } from './helpers';
@@ -33,14 +33,14 @@ afterAll(async () => {
   await db?.destroy();
 });
 
-const lastCode = (phone: string) => {
-  const sms = (app.get(SMS_SENDER) as LogSmsSender).sent.filter((s) => s.phone === phone).pop();
-  return sms!.text.match(/\d{6}/)![0];
+const lastCode = (email: string) => {
+  const mail = (app.get(MAIL_SENDER) as LogMailSender).sent.filter((m) => m.to === email).pop();
+  return mail!.text.match(/\d{6}/)![0];
 };
 
-async function signIn(phone: string) {
-  await http.post(`${G}/auth/otp/request`).send({ phone }).expect(200);
-  const r = await http.post(`${G}/auth/otp/verify`).send({ phone, code: lastCode('+7' + phone.replace(/\D/g, '').slice(-10)) });
+async function signIn(email: string) {
+  await http.post(`${G}/auth/otp/request`).send({ email }).expect(200);
+  const r = await http.post(`${G}/auth/otp/verify`).send({ email, code: lastCode(email.trim().toLowerCase()) });
   expect(r.status, JSON.stringify(r.body)).toBe(200);
   return r.body as { guestId: string; accessToken: string; refreshToken: string; expiresInSeconds: number };
 }
@@ -64,28 +64,30 @@ describe('гостевое приложение', () => {
     expect(missing.body.error).toMatchObject({ code: 'not_found', message: 'Документ не найден' });
   });
 
-  it('вход по коду из SMS: неверный код не пускает, повторный запрос кода не раньше чем через минуту', async () => {
+  it('вход по коду из письма: неверный код не пускает, повторный запрос кода не раньше чем через минуту', async () => {
     const no = await http.get(`${G}/bookings/my`);
     expect(no.status).toBe(401);
     expect(no.body.error.code).toBe('unauthorized');
 
-    await http.post(`${G}/auth/otp/request`).send({ phone: '8 (900) 555-00-01' }).expect(200);
-    const again = await http.post(`${G}/auth/otp/request`).send({ phone: '+79005550001' });
+    await http.post(`${G}/auth/otp/request`).send({ email: ' Guest1@Example.com ' }).expect(200);
+    const again = await http.post(`${G}/auth/otp/request`).send({ email: 'guest1@example.com' });
     expect(again.status).toBe(429);
-    const code = lastCode('+79005550001');
-    const wrong = await http.post(`${G}/auth/otp/verify`).send({ phone: '+79005550001', code: code === '000000' ? '111111' : '000000' });
+    const mail = (app.get(MAIL_SENDER) as LogMailSender).sent.filter((m) => m.to === 'guest1@example.com').pop()!;
+    expect(mail.subject).toMatch(/^Код для входа: \d{6}$/);
+    const code = lastCode('guest1@example.com');
+    const wrong = await http.post(`${G}/auth/otp/verify`).send({ email: 'guest1@example.com', code: code === '000000' ? '111111' : '000000' });
     expect(wrong.body.error.code).toBe('invalid_code');
-    const ok = await http.post(`${G}/auth/otp/verify`).send({ phone: '89005550001', code });
+    const ok = await http.post(`${G}/auth/otp/verify`).send({ email: 'GUEST1@example.com', code });
     expect(ok.status).toBe(200);
     // Код одноразовый
-    const reuse = await http.post(`${G}/auth/otp/verify`).send({ phone: '+79005550001', code });
+    const reuse = await http.post(`${G}/auth/otp/verify`).send({ email: 'guest1@example.com', code });
     expect(reuse.body.error.code).toBe('invalid_code');
 
-    const bad = await http.post(`${G}/auth/otp/request`).send({ phone: '12345' });
+    const bad = await http.post(`${G}/auth/otp/request`).send({ email: 'не почта' });
     expect(bad.body.error.code).toBe('validation_error');
   });
 
-  it('гость видит свою бронь по телефону, оплачивает предоплату и остаток через страницу банка', async () => {
+  it('гость видит свою бронь по e-mail, оплачивает предоплату и остаток через страницу банка', async () => {
     const b = await http.post('/public/v1/test/bookings').send({
       accommodationTypeId: ids.comfort, ratePlanId: ids.plan, arrival: addDays(today, 10), departure: addDays(today, 12), adults: 2,
       guest: { lastName: 'Орлова', firstName: 'Анна', phone: '+79001112233', email: 'orlova@example.com' },
@@ -93,10 +95,10 @@ describe('гостевое приложение', () => {
     });
     expect(b.status).toBe(201);
 
-    const other = await signIn('+79009998877');
+    const other = await signIn('other@example.com');
     expect((await http.get(`${G}/bookings/my`).set('authorization', `Bearer ${other.accessToken}`)).body).toEqual([]);
 
-    const t = await signIn('8 900 111 22 33');
+    const t = await signIn('Orlova@Example.com');
     const auth = { authorization: `Bearer ${t.accessToken}` };
     const list = await http.get(`${G}/bookings/my`).set(auth).expect(200);
     expect(list.body).toHaveLength(1);
@@ -135,21 +137,21 @@ describe('гостевое приложение', () => {
     expect(back.headers.location).toBe('qvarc://payment-return');
   });
 
-  it('тестовый код входа работает без SMS', async () => {
+  it('тестовый код входа работает без почты', async () => {
     const { createApp } = await import('../apps/api/src/main');
     const { TEST_DB } = await import('./helpers');
-    const t = await createApp({ databaseUrl: TEST_DB, cookieSecure: false, sessionHours: 1, bookingSiteUrl: 'http://book.test', apiPublicUrl: 'http://api.test', payments: { provider: 'sandbox', sandboxSecret: 's' }, jobs: false, rateLimitFactor: 100, guestSms: 'off', guestTestCode: '246810' });
+    const t = await createApp({ databaseUrl: TEST_DB, cookieSecure: false, sessionHours: 1, bookingSiteUrl: 'http://book.test', apiPublicUrl: 'http://api.test', payments: { provider: 'sandbox', sandboxSecret: 's' }, jobs: false, rateLimitFactor: 100, mail: { mode: 'off', from: 'x' }, guestTestCode: '246810' });
     await t.init();
     const h = request(t.getHttpServer());
-    await h.post(`${G}/auth/otp/request`).send({ phone: '+79007770000' }).expect(200);
-    const r = await h.post(`${G}/auth/otp/verify`).send({ phone: '+79007770000', code: '246810' });
+    await h.post(`${G}/auth/otp/request`).send({ email: 'test@example.com' }).expect(200);
+    const r = await h.post(`${G}/auth/otp/verify`).send({ email: 'test@example.com', code: '246810' });
     expect(r.status).toBe(200);
     expect(r.body.accessToken).toBeTruthy();
     await t.close();
   });
 
   it('токен обновления одноразовый: повтор старого закрывает все сессии гостя', async () => {
-    const t = await signIn('+79004443322');
+    const t = await signIn('refresh1@example.com');
     const r1 = await http.post(`${G}/auth/refresh`).send({ refreshToken: t.refreshToken }).expect(200);
     expect(r1.body.refreshToken).not.toBe(t.refreshToken);
     await http.get(`${G}/bookings/my`).set('authorization', `Bearer ${t.accessToken}`).expect(401);
@@ -159,7 +161,7 @@ describe('гостевое приложение', () => {
     expect(stolen.status).toBe(401);
     await http.post(`${G}/auth/refresh`).send({ refreshToken: r1.body.refreshToken }).expect(401);
 
-    const t2 = await signIn('+79004443300');
+    const t2 = await signIn('refresh2@example.com');
     await http.post(`${G}/auth/logout`).set('authorization', `Bearer ${t2.accessToken}`).send({ refreshToken: t2.refreshToken }).expect(200);
     await http.post(`${G}/auth/refresh`).send({ refreshToken: t2.refreshToken }).expect(401);
   });
@@ -173,7 +175,7 @@ describe('онлайн-регистрация', () => {
       consents: { pdProcessing: true }, idempotencyKey: randomUUID(),
     });
     expect(created.status, JSON.stringify(created.body)).toBe(201);
-    const t = await signIn('+79001112244');
+    const t = await signIn('smirnov@example.com');
     const auth = { authorization: `Bearer ${t.accessToken}` };
     const booking = (await http.get(`${G}/bookings/my`).set(auth)).body[0];
     const C = `${G}/checkin/${booking.id}`;
@@ -183,7 +185,7 @@ describe('онлайн-регистрация', () => {
     expect(s.steps).toMatchObject({ guests: false, documents: false, rules: false, payment: false, unitReady: false });
 
     // Чужой гость не видит регистрацию
-    const other = await signIn('+79001119999');
+    const other = await signIn('stranger@example.com');
     await http.get(C).set('authorization', `Bearer ${other.accessToken}`).expect(404);
 
     const tooMany = await http.put(`${C}/guests`).set(auth).send({ guests: [1, 2, 3].map((i) => ({ firstName: `Г${i}`, lastName: 'Смирнов', isChild: false })) });

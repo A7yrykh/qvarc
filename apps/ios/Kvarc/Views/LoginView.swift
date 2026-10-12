@@ -1,10 +1,10 @@
 import SwiftUI
 
-/// Вход по номеру телефона и коду из SMS
+/// Вход по e-mail и коду из письма
 struct LoginView: View {
     @Environment(AppState.self) private var app
-    @State private var phoneInput = "+7 "
-    @State private var phone: String?
+    @State private var emailInput = ""
+    @State private var email: String?
     @State private var code = ""
     @State private var busy = false
     @State private var error: String?
@@ -26,13 +26,13 @@ struct LoginView: View {
                     .padding(.bottom, 24)
 
                     if app.isDemo {
-                        DemoBanner(text: "Демо-режим: сервер не подключён. Подойдёт любой номер и любой код из 6 цифр.")
+                        DemoBanner(text: "Демо-режим: сервер не подключён. Подойдёт любая почта и любой код из 6 цифр.")
                     }
 
-                    if let phone {
-                        codeStep(phone)
+                    if let email {
+                        codeStep(email)
                     } else {
-                        phoneStep
+                        emailStep
                     }
                 }
                 .padding(.horizontal, 24)
@@ -42,23 +42,23 @@ struct LoginView: View {
         .errorAlert($error)
     }
 
-    private var phoneStep: some View {
+    private var emailStep: some View {
         VStack(alignment: .leading, spacing: 18) {
             Text("Вход").font(.system(size: 30, weight: .semibold)).foregroundStyle(Brand.milky)
-            Text("Укажите телефон из бронирования. Пришлём код в SMS, пароль не нужен.")
+            Text("Укажите e-mail из бронирования. Пришлём код в письме, пароль не нужен.")
                 .foregroundStyle(Brand.onGraphiteSecondary)
-            darkField("Номер телефона", text: $phoneInput, keyboard: .phonePad, contentType: .telephoneNumber)
+            darkField("E-mail", text: $emailInput, keyboard: .emailAddress, contentType: .emailAddress)
             Button {
                 Task { await requestCode() }
             } label: {
                 if busy { ProgressView().tint(Brand.graphite) } else { Text("Получить код") }
             }
             .buttonStyle(PrimaryButtonStyle(inverted: true))
-            .disabled(busy || Phone.normalize(phoneInput) == nil)
+            .disabled(busy || Self.normalizeEmail(emailInput) == nil)
 
             Text("Нажимая «Получить код», вы соглашаетесь с политикой обработки персональных данных")
                 .font(.footnote).foregroundStyle(Brand.onGraphiteSecondary)
-            if let url = URL(string: "https://qvarc.ru") {
+            if let url = URL(string: "https://xn--80adx0a4a.xn--p1acf") {
                 Link(destination: url) {
                     Text("Ещё нет брони? ").foregroundStyle(Brand.onGraphiteSecondary) + Text("Забронировать на сайте").underline().foregroundStyle(Brand.milky)
                 }
@@ -67,19 +67,19 @@ struct LoginView: View {
         }
     }
 
-    private func codeStep(_ phone: String) -> some View {
+    private func codeStep(_ email: String) -> some View {
         VStack(alignment: .leading, spacing: 18) {
-            Text("Код из SMS").font(.system(size: 30, weight: .semibold)).foregroundStyle(Brand.milky)
-            Text("Отправили на \(Phone.pretty(phone)).").foregroundStyle(Brand.onGraphiteSecondary)
+            Text("Код из письма").font(.system(size: 30, weight: .semibold)).foregroundStyle(Brand.milky)
+            Text("Отправили на \(email). Если письма нет, проверьте папку «Спам».").foregroundStyle(Brand.onGraphiteSecondary)
             darkField("Код", text: $code, keyboard: .numberPad, contentType: .oneTimeCode)
                 .focused($codeFocused)
                 .onChange(of: code) { _, new in
                     let digits = String(new.filter(\.isNumber).prefix(6))
                     if digits != new { code = digits }
-                    if digits.count == 6 && !busy { Task { await verify(phone) } }
+                    if digits.count == 6 && !busy { Task { await verify(email) } }
                 }
             Button {
-                Task { await verify(phone) }
+                Task { await verify(email) }
             } label: {
                 if busy { ProgressView().tint(Brand.graphite) } else { Text("Войти") }
             }
@@ -87,8 +87,8 @@ struct LoginView: View {
             .disabled(busy || code.count != 6)
 
             HStack {
-                Button("Изменить номер") {
-                    self.phone = nil
+                Button("Изменить почту") {
+                    self.email = nil
                     code = ""
                 }
                 Spacer()
@@ -112,6 +112,8 @@ struct LoginView: View {
             TextField("", text: text)
                 .keyboardType(keyboard)
                 .textContentType(contentType)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
                 .font(.title3)
                 .foregroundStyle(Brand.milky)
                 .padding(.horizontal, 14)
@@ -122,15 +124,15 @@ struct LoginView: View {
     }
 
     private func requestCode() async {
-        guard let normalized = Phone.normalize(phone ?? phoneInput) else {
-            error = "Проверьте номер телефона"
+        guard let normalized = Self.normalizeEmail(email ?? emailInput) else {
+            error = "Проверьте адрес почты"
             return
         }
         busy = true
         defer { busy = false }
         do {
-            try await app.backend.requestCode(phone: normalized)
-            phone = normalized
+            try await app.backend.requestCode(email: normalized)
+            email = normalized
             code = ""
             resendAt = Date().addingTimeInterval(60)
         } catch {
@@ -138,16 +140,22 @@ struct LoginView: View {
         }
     }
 
-    private func verify(_ phone: String) async {
+    private func verify(_ email: String) async {
         guard code.count == 6, !busy else { return }
         busy = true
         defer { busy = false }
         do {
-            try await app.backend.verify(phone: phone, code: code)
+            try await app.backend.verify(email: email, code: code)
             await app.signedIn()
         } catch {
             code = ""
             self.error = error.localizedDescription
         }
+    }
+
+    /// Адрес в нижнем регистре без пробелов или nil, если он явно неверный. Точную проверку делает сервер.
+    static func normalizeEmail(_ input: String) -> String? {
+        let e = input.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return e.range(of: #"^[^\s@]+@[^\s@]+\.[^\s@]+$"#, options: .regularExpression) != nil ? e : nil
     }
 }

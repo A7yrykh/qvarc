@@ -388,9 +388,10 @@ export interface Guest {
 
 export interface GuestAccount {
   created_at: Generated<Timestamp>;
+  email: string | null;
   id: Generated<string>;
   last_login_at: Timestamp | null;
-  phone_e164: string;
+  phone_e164: string | null;
   property_id: string;
 }
 
@@ -471,10 +472,11 @@ export interface GuestOtp {
   code_hash: Buffer;
   consumed_at: Timestamp | null;
   created_at: Generated<Timestamp>;
+  email: string | null;
   expires_at: Timestamp;
   id: Generated<string>;
   ip: string | null;
-  phone_e164: string;
+  phone_e164: string | null;
   property_id: string;
 }
 
