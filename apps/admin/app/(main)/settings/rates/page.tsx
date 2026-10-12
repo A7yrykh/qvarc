@@ -22,9 +22,9 @@ function policyText(tiers: Tier[]) {
   const sorted = [...tiers].sort((a, b) => b.days_before - a.days_before);
   const fine = (t: Tier) =>
     t.penalty_nights !== undefined
-      ? t.penalty_nights === 0 ? 'бесплатно' : `штраф ${t.penalty_nights} ноч.`
-      : t.penalty_pct === 0 ? 'бесплатно' : `штраф ${t.penalty_pct}%`;
-  return sorted.map((t) => `${t.days_before > 0 ? `за ${t.days_before}+ дн.` : 'в день заезда'}: ${fine(t)}`).join('; ');
+      ? t.penalty_nights === 0 ? 'бесплатно' : `удержание ${t.penalty_nights === 1 ? 'одних суток' : `${t.penalty_nights} сут.`}`
+      : t.penalty_pct === 0 ? 'бесплатно' : `удержание ${t.penalty_pct}%`;
+  return sorted.map((t, i) => `${t.days_before > 0 ? `за ${t.days_before}+ дн.` : i > 0 ? `менее чем за ${sorted[i - 1].days_before} дн.` : 'в любой момент'}: ${fine(t)}`).join('; ');
 }
 
 export default function RatesPage() {
