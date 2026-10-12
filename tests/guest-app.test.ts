@@ -98,7 +98,7 @@ describe('сведения о базе', () => {
     expect(r.status).toBe(200);
     expect(r.body.title).toContain('Политика');
     expect(r.body.sections.length).toBeGreaterThan(3);
-    expect((await http().get('/guest/v1/documents')).body.map((d: { code: string }) => d.code)).toEqual(['rules', 'privacy']);
+    expect((await http().get('/guest/v1/documents')).body.map((d: { code: string }) => d.code)).toEqual(['rules', 'privacy', 'offer']);
   });
 });
 
