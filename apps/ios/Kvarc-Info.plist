@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Адрес сервера QVARC. Пусто = демо-режим без сервера (данные-примеры прямо в приложении).
+	     Для проверки с сервером на этом Mac: http://localhost:3000 -->
+	<key>QvarcAPIBaseURL</key>
+	<string></string>
+	<!-- Возврат из оплаты: сервер отправляет гостя на qvarc://payment-return -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>ru.qvarcuvildy.guest.payment</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>qvarc</string>
+			</array>
+		</dict>
+	</array>
+	<!-- Разрешает http только для локального сервера при разработке (localhost, IP в сети). Боевой сервер — только https. -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+</dict>
+</plist>
