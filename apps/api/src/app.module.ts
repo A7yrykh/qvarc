@@ -16,6 +16,7 @@ import { UsersController } from './iam/users.controller';
 import { UsersService } from './iam/users.service';
 import { InventoryController } from './inventory/inventory.controller';
 import { InventoryService } from './inventory/inventory.service';
+import { RateGridService } from './inventory/rate-grid.service';
 
 @Module({})
 export class AppModule {
@@ -34,6 +35,7 @@ export class AppModule {
         AuthService,
         UsersService,
         InventoryService,
+        RateGridService,
         GuestsService,
         AvailabilityService,
         BookingsService,

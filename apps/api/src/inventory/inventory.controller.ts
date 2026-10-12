@@ -3,14 +3,28 @@ import { parse } from '../common/validation';
 import { ClientIp, CurrentUser, RequirePerms, type StaffUser } from '../iam/auth.decorators';
 import { BlockBody, RatePlanBody, RateRuleBody, TypeBody, UnitBody } from './inventory.schemas';
 import { InventoryService } from './inventory.service';
+import { RateGridService } from './rate-grid.service';
 import { z } from 'zod';
 import { isoDate, uuid } from '../common/validation';
 
+const GridQuery = z
+  .object({ ratePlanId: uuid, from: isoDate, to: isoDate })
+  .refine((q) => q.to > q.from, { message: 'Конец периода раньше начала' });
 const RuleFilter = z.object({ typeId: uuid.optional(), ratePlanId: uuid.optional(), from: isoDate.optional(), to: isoDate.optional() });
 
 @Controller('admin/v1')
 export class InventoryController {
-  constructor(private readonly inv: InventoryService) {}
+  constructor(
+    private readonly inv: InventoryService,
+    private readonly grid: RateGridService,
+  ) {}
+
+  @Get('rate-grid')
+  @RequirePerms('rates.read')
+  rateGrid(@Query() q: unknown, @CurrentUser() u: StaffUser) {
+    const g = parse(GridQuery, q);
+    return this.grid.grid(u.propertyId, g.ratePlanId, g.from, g.to);
+  }
 
   @Get('accommodation-types')
   @RequirePerms('inventory.read')

@@ -1,0 +1,108 @@
+/* QVARC: графит, камень, хвоя. Без внешних шрифтов: Manrope, если установлен, иначе системный. */
+:root {
+  --bg: #f4f3f0;
+  --surface: #ffffff;
+  --surface-2: #ecebe7;
+  --line: #dddbd5;
+  --text: #24272b;
+  --muted: #6d7177;
+  --graphite: #2f3338;
+  --accent: #4f6146;
+  --accent-soft: #e3e9df;
+  --ok: #4f6146;
+  --ok-bg: #dfe8da;
+  --info: #3d5a73;
+  --info-bg: #dbe6ef;
+  --warn: #8a6420;
+  --warn-bg: #f3e6c9;
+  --bad: #8f3b32;
+  --bad-bg: #f2dcd8;
+  --radius: 8px;
+  --cell: 44px;
+  font-family: Manrope, 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-size: 14px; line-height: 1.45; }
+a { color: inherit; }
+h1 { font-size: 22px; font-weight: 600; margin: 0 0 16px; letter-spacing: -0.01em; }
+h2 { font-size: 16px; font-weight: 600; margin: 0 0 12px; }
+button, input, select, textarea { font: inherit; color: inherit; }
+input, select, textarea {
+  border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; background: var(--surface); min-width: 0;
+}
+input:focus, select:focus, textarea:focus, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+label { display: grid; gap: 4px; font-size: 12px; color: var(--muted); }
+label > input, label > select, label > textarea { font-size: 14px; color: var(--text); }
+.btn {
+  text-decoration: none; display: inline-block;
+  border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 7px 14px; cursor: pointer; white-space: nowrap;
+}
+.btn:hover { background: var(--surface-2); }
+.btn.primary { background: var(--graphite); color: #fff; border-color: var(--graphite); }
+.btn.primary:hover { background: #1f2226; }
+.btn.danger { color: var(--bad); border-color: #e2c3be; }
+.btn:disabled { opacity: 0.5; cursor: default; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
+.stack { display: grid; gap: 16px; }
+.muted { color: var(--muted); }
+.error { background: var(--bad-bg); color: var(--bad); padding: 10px 12px; border-radius: 6px; }
+.notice { background: var(--ok-bg); color: var(--ok); padding: 10px 12px; border-radius: 6px; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 500; }
+.tone-ok { background: var(--ok-bg); color: var(--ok); }
+.tone-info { background: var(--info-bg); color: var(--info); }
+.tone-warn { background: var(--warn-bg); color: var(--warn); }
+.tone-bad { background: var(--bad-bg); color: var(--bad); }
+.tone-muted { background: var(--surface-2); color: var(--muted); }
+table.list { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+table.list th, table.list td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+table.list th { font-size: 12px; color: var(--muted); font-weight: 500; background: #faf9f7; }
+table.list tr:last-child td { border-bottom: 0; }
+table.list tr.click { cursor: pointer; }
+table.list tr.click:hover td { background: #faf9f7; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Каркас */
+.shell { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+.side { background: var(--graphite); color: #e9e7e2; padding: 20px 12px; display: flex; flex-direction: column; gap: 4px; }
+.brand { font-weight: 700; letter-spacing: 0.24em; font-size: 18px; padding: 0 10px 18px; }
+.side a { text-decoration: none; padding: 8px 10px; border-radius: 6px; color: #d5d3cd; }
+.side a.active, .side a:hover { background: rgba(255,255,255,0.09); color: #fff; }
+.side .grow { flex: 1; }
+.side .who { font-size: 12px; color: #a9a7a1; padding: 8px 10px; }
+.main { padding: 24px; min-width: 0; }
+@media (max-width: 860px) {
+  .shell { grid-template-columns: 1fr; }
+  .side { flex-direction: row; overflow-x: auto; padding: 8px; }
+  .brand, .side .grow, .side .who { display: none; }
+  .main { padding: 16px; }
+  .chess { grid-template-columns: 96px repeat(28, var(--cell)) !important; }
+}
+
+/* Шахматка */
+.chess-wrap { overflow: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); max-height: calc(100vh - 170px); }
+.chess { display: grid; position: relative; min-width: max-content; }
+.chess .head { position: sticky; top: 0; z-index: 3; background: #faf9f7; border-bottom: 1px solid var(--line); text-align: center; font-size: 11px; padding: 4px 0; color: var(--muted); }
+.chess .head.weekend { color: var(--bad); }
+.chess .head.today { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.chess .unit { position: sticky; left: 0; z-index: 2; background: var(--surface); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 0 10px; display: flex; align-items: center; height: 40px; font-size: 13px; white-space: nowrap; }
+.chess .type { position: sticky; left: 0; z-index: 2; grid-column: 1 / -1; background: var(--surface-2); padding: 4px 10px; font-size: 12px; font-weight: 600; color: var(--muted); border-bottom: 1px solid var(--line); }
+.chess .cell { border-right: 1px solid #f0efeb; border-bottom: 1px solid var(--line); height: 40px; cursor: cell; }
+.chess .cell.weekend { background: #fbf8f5; }
+.chess .cell:hover { background: var(--accent-soft); }
+.chess .bar { z-index: 1; margin: 5px 2px; border-radius: 6px; padding: 0 8px; font-size: 12px; display: flex; align-items: center; gap: 6px; overflow: hidden; white-space: nowrap; cursor: pointer; text-decoration: none; border-left: 3px solid currentColor; }
+.chess .bar .debt { margin-left: auto; font-size: 11px; opacity: 0.8; }
+.chess .block { z-index: 1; margin: 5px 2px; border-radius: 6px; background: repeating-linear-gradient(45deg, #e6e4df, #e6e4df 6px, #f1f0ec 6px, #f1f0ec 12px); font-size: 11px; color: var(--muted); display: flex; align-items: center; padding: 0 8px; }
+
+/* Цены и ограничения */
+.prices { border-collapse: separate; border-spacing: 0; font-size: 12px; }
+.prices th, .prices td { border-right: 1px solid #f0efeb; border-bottom: 1px solid var(--line); padding: 4px 6px; text-align: center; min-width: 58px; }
+.prices th.rowhead, .prices td.rowhead { position: sticky; left: 0; background: var(--surface); text-align: left; min-width: 170px; z-index: 1; }
+.prices thead th { position: sticky; top: 0; background: #faf9f7; z-index: 2; font-weight: 500; color: var(--muted); }
+.prices td.sel { background: var(--accent-soft); }
+.prices td.closed { background: var(--bad-bg); color: var(--bad); }
+.prices td.pick { cursor: pointer; user-select: none; }
+.prices .flag { font-size: 10px; color: var(--warn); }

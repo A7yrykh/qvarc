@@ -355,6 +355,11 @@ export class BookingsService {
     const items = await trx.selectFrom('booking_item').selectAll().where('booking_id', '=', id).orderBy('created_at').execute();
     const history = await trx.selectFrom('booking_status_history').selectAll().where('booking_id', '=', id).orderBy('id').execute();
     const paid = await this.paidMinor(trx, [id]);
+    const transitions = await trx
+      .selectFrom('booking_status_transition')
+      .select('to_status')
+      .where('from_status', '=', b.status)
+      .execute();
     const canSeeContacts = !!user?.permissions.has('guest.contacts.read');
     const { manage_token_hash: _hidden, ...rest } = b;
     return {
@@ -365,6 +370,7 @@ export class BookingsService {
       nights,
       items,
       history,
+      allowed_transitions: transitions.map((t) => t.to_status),
       paid_minor: paid.get(id) ?? 0,
       balance_minor: b.total_minor - (paid.get(id) ?? 0),
     };

@@ -192,6 +192,8 @@ describe('бронирование (тесты ТЗ 1, 2, 3, 9, 10)', () => {
 
 describe('статусы', () => {
   it('нельзя выселить, не заселив; отмена освобождает номер; отменённую нельзя вернуть', async () => {
+    const card = await owner.get(`/admin/v1/bookings/${ids.b2}`);
+    expect(card.body.allowed_transitions.sort()).toEqual(['cancelled', 'checked_in', 'no_show']);
     const bad = await owner.post(`/admin/v1/bookings/${ids.b2}/status`, { status: 'checked_out' });
     expect(bad.status).toBe(409);
     const cancel = await owner.post(`/admin/v1/bookings/${ids.b2}/status`, { status: 'cancelled', reason: 'гость отказался' });
@@ -210,6 +212,21 @@ describe('статусы', () => {
 
   it('подтверждённую бронь нельзя удалить даже напрямую в базе', async () => {
     await expect(db.deleteFrom('booking').where('id', '=', ids.b1).execute()).rejects.toThrow(/удалить нельзя/);
+  });
+});
+
+describe('цены и ограничения', () => {
+  it('таблица показывает итоговую цену по дням и число свободных номеров', async () => {
+    const r = await owner.get(`/admin/v1/rate-grid?ratePlanId=${ids.plan}&from=${d(28)}&to=${d(35)}`);
+    expect(r.status).toBe(200);
+    const days = r.body.rows[0].days;
+    expect(days).toHaveLength(7);
+    // d28 — понедельник: база; d32 — пятница: выходные
+    expect(days[0].priceMinor).toBe(500_000);
+    expect(days[4].priceMinor).toBe(700_000);
+    // Номер 3 закрыт на ремонт d30–d31
+    expect(days[2].free).toBe(2);
+    expect(days[0].free).toBe(3);
   });
 });
 

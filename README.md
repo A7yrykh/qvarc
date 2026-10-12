@@ -29,6 +29,15 @@ QVARC_OWNER_EMAIL=... QVARC_OWNER_NAME=... QVARC_OWNER_PASSWORD=... \
 npm run build && npm run start:api
 ```
 
+## Админка (apps/admin)
+
+Next.js 15. Экраны: шахматка, брони, карта брони, новая бронь, гости, «Цены и ограничения», номера, тарифы. Обращается к API по `/admin/v1/*` (переменная `API_URL`, по умолчанию http://localhost:3000).
+
+```
+cd apps/admin && npm install
+npm run build && npx next start -p 3100
+```
+
 ## Тесты
 
 ```bash
