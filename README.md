@@ -52,7 +52,7 @@ SwiftUI, iOS 17+, Xcode 16. Откройте `apps/ios/Kvarc.xcodeproj`. Без 
 
 Паспортные данные: шифрование AES-256-GCM, гостю показываются только последние 4 цифры, сотруднику — с правом `guest.documents.read`, каждый просмотр пишется в журнал. Удаляются через 30 дней после выезда (`property.settings.guestApp.documentsRetentionDays`). Там же настраиваются `registrationOpensDaysBefore` (7), `documentsRequired` (да) и `paymentRequiredBeforeAccess` (да).
 
-Тексты для приложения: `data/kvarc-guest-info.json` (о базе, контакты, ответы на вопросы) и `data/legal-documents.json` (правила проживания; новая версия правил требует принять их заново).
+Тексты для приложения: `data/kvarc-guest-info.json` (о базе, контакты, ответы на вопросы) и `data/legal-documents.json` (правила проживания и политика обработки персональных данных; новая версия правил требует принять их заново).
 
 ## Модуль бронирования для сайта (apps/booking)
 
