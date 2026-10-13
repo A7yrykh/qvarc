@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Установка QVARC на чистый сервер Ubuntu 24.04 одной командой из консоли панели (от root):
-#   curl -fsSL https://raw.githubusercontent.com/A7yrykh/qvarc/<ветка>/deploy/install.sh -o install.sh
-#   nohup bash install.sh <почта владельца> [ветка] > install.log 2>&1 &
+#   git clone -b <ветка> https://github.com/A7yrykh/qvarc.git /opt/qvarc
+#   nohup bash /opt/qvarc/deploy/install.sh <почта владельца> [ветка] > /root/i.log 2>&1 &
 # Код берётся из GitHub в /opt/qvarc. Пароли и ключи создаются здесь же и пишутся только в /opt/qvarc/deploy/.env.
 # Пока DNS кварц.рус не настроен, адреса временные: admin|book|api.<IP через дефисы>.sslip.io (указывают на этот же сервер).
 # Выгрузки TravelLine, если нужны сразу, положить в /opt/qvarc/deploy/import до запуска setup.sh.
