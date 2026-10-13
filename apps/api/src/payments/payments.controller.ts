@@ -43,6 +43,13 @@ export class PaymentsController {
     return this.payments.listForBooking(u.propertyId, id);
   }
 
+  @Post('admin/v1/bookings/:id/deposit-offsets')
+  @RequirePerms('booking.write', 'payment.read')
+  applyDeposit(@Param('id', ParseUUIDPipe) id: string, @Body() b: unknown, @CurrentUser() u: StaffUser) {
+    const body = parse(z.object({ depositId: z.string().uuid(), amountMinor: z.number().int().positive() }), b);
+    return this.payments.applyDeposit({ propertyId: u.propertyId, bookingId: id, depositId: body.depositId, amountMinor: body.amountMinor, userId: u.id });
+  }
+
   @Post('admin/v1/payments/:id/refunds')
   @RequirePerms('payment.refund')
   refund(@Param('id', ParseUUIDPipe) id: string, @Body() b: unknown, @CurrentUser() u: StaffUser) {

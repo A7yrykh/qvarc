@@ -57,3 +57,49 @@ export function prepaymentMinor(policy: PrepaymentPolicy, totalMinor: number): n
   assertPct(policy.pct);
   return Math.round((totalMinor * policy.pct) / 100);
 }
+
+/** Сезон в днях года, «ММ-ДД». from > to означает переход через Новый год. */
+export interface DepositSeason {
+  name: string;
+  from: string;
+  to: string; // включительно
+}
+
+/**
+ * Сезонный депозит (договор-оферта п.5): при отмене меньше чем за days_before дней до заезда в сезон
+ * оплата не возвращается деньгами, а остаётся на депозите гостя для будущего проживания.
+ */
+export interface DepositPolicy {
+  days_before: number;
+  seasons: DepositSeason[];
+}
+
+const MMDD = /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+
+export function validateDepositPolicy(p: DepositPolicy): DepositPolicy {
+  if (!Number.isInteger(p.days_before) || p.days_before < 1) throw new Error('Депозит: срок отмены — целое число дней, не меньше 1');
+  if (!Array.isArray(p.seasons) || p.seasons.length === 0) throw new Error('Не заданы сезоны депозита');
+  for (const s of p.seasons) if (!MMDD.test(s.from) || !MMDD.test(s.to)) throw new Error(`Сезон «${s.name}»: укажите даты начала и конца, например 01.06 и 31.08`);
+  return p;
+}
+
+/** Сезон, в который попадает дата заезда, или null */
+export function seasonOf(seasons: DepositSeason[], date: string): DepositSeason | null {
+  const md = date.slice(5, 10);
+  return seasons.find((s) => (s.from <= s.to ? md >= s.from && md <= s.to : md >= s.from || md <= s.to)) ?? null;
+}
+
+/** Действует ли сезонный депозит при отмене в cancelDate брони с заездом arrival */
+export function depositApplies(policy: DepositPolicy | null | undefined, arrival: string, cancelDate: string): boolean {
+  if (!policy) return false;
+  return diffDays(cancelDate, arrival) < policy.days_before && seasonOf(policy.seasons, arrival) !== null;
+}
+
+/**
+ * Итог отмены: удержание по ступеням, возврат на карту и сумма, остающаяся на депозите.
+ * При сезонном депозите вся оплата остаётся на депозите, на карту ничего не возвращается.
+ */
+export function cancellationOutcome(penaltyMinor: number, paidMinor: number, deposit: boolean) {
+  if (deposit) return { penaltyMinor: 0, refundMinor: 0, depositMinor: paidMinor };
+  return { penaltyMinor, refundMinor: Math.max(0, paidMinor - penaltyMinor), depositMinor: 0 };
+}

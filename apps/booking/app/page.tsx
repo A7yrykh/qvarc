@@ -1,13 +1,13 @@
 'use client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
-import { MEAL, OFFER_URL, PRIVACY_URL, PROPERTY, addDays, api, cancellationText, diffDays, errorText, fmtDate, nightsWord, rub, type Tier } from '@/lib/api';
+import { MEAL, OFFER_URL, PRIVACY_URL, RULES_URL, PROPERTY, addDays, api, cancellationText, depositText, diffDays, errorText, fmtDate, nightsWord, rub, type DepositRule, type Tier } from '@/lib/api';
 
 interface Info { name: string; checkInTime: string; checkOutTime: string; today: string; holdMinutes: number }
 interface Offer {
   ratePlan: { id: string; name: string; mealPlan: string; isRefundable: boolean };
   bookable: boolean; restrictions: { code: string; value?: number; night?: string }[];
-  nights: { night: string; amountMinor: number }[]; totalMinor: number; prepaymentDueMinor: number; cancellationPolicy: Tier[] | null;
+  nights: { night: string; amountMinor: number }[]; totalMinor: number; prepaymentDueMinor: number; cancellationPolicy: Tier[] | null; depositRule: DepositRule | null;
 }
 interface Room {
   accommodationType: { id: string; name: string; kind: string; areaM2: number | null; maxOccupancy: number; amenities: string[]; photos: { url: string; alt?: string }[]; description: string | null };
@@ -164,6 +164,7 @@ function Booking() {
                       <h3>{o.ratePlan.name}</h3>
                       <div className="small">{MEAL[o.ratePlan.mealPlan] ?? ''}</div>
                       <div className="small muted">{cancellationText(o.cancellationPolicy)}</div>
+                      {depositText(o.depositRule) && <div className="small muted">{depositText(o.depositRule, true)}</div>}
                       {o.bookable && o.prepaymentDueMinor > 0 && <div className="small muted">Предоплата при бронировании {rub(o.prepaymentDueMinor)}, остальное при заезде</div>}
                       {o.bookable && o.prepaymentDueMinor === 0 && <div className="small muted">Без предоплаты, оплата при заезде</div>}
                     </div>
@@ -240,6 +241,7 @@ function Checkout({ info, search, room, offer, onBack, onDone }: {
         <div className="line"><span>Стоимость за {nightsWord(nights)}</span><b>{rub(offer.totalMinor)}</b></div>
         {offer.prepaymentDueMinor > 0 && <div className="line"><span>Предоплата сейчас</span><b>{rub(offer.prepaymentDueMinor)}</b></div>}
         <div className="small muted">{cancellationText(offer.cancellationPolicy)}</div>
+        {depositText(offer.depositRule) && <div className="small muted">{depositText(offer.depositRule)}</div>}
       </div>
 
       <div className="card stack">
@@ -256,7 +258,8 @@ function Checkout({ info, search, room, offer, onBack, onDone }: {
           <input type="checkbox" required checked={pd} onChange={(e) => setPd(e.target.checked)} />
           <span>
             Даю согласие на обработку персональных данных{PRIVACY_URL ? <> по <a href={PRIVACY_URL} target="_blank" rel="noreferrer">политике конфиденциальности</a></> : ''}
-            {OFFER_URL ? <> и принимаю <a href={OFFER_URL} target="_blank" rel="noreferrer">условия бронирования</a></> : ''}
+            {RULES_URL ? <>, принимаю <a href={RULES_URL} target="_blank" rel="noreferrer">правила проживания</a></> : ''}
+            {OFFER_URL ? <> и <a href={OFFER_URL} target="_blank" rel="noreferrer">договор-оферту</a></> : ''}
           </span>
         </label>
         <label className="check">

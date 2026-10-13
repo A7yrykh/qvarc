@@ -41,7 +41,7 @@ final class DemoBackend: Backend {
             checkedInAt: nil, checkedOutAt: nil
         )
 
-        // Список проката — от владельца. Цены катамарана, сапов и велосипедов — с сайта базы,
+        // Список проката — от владельца. Цены катамарана, сапов и велосипедов — с кварц.рус («Чем заняться»),
         // остальные ещё не известны: price = 0 («цена уточняется»). Количество — пример.
         func item(_ id: String, _ name: String, _ desc: String, price: Int = 0, minutes: Int?, minAge: Int? = nil, max: Int) -> Service {
             Service(id: id, name: name, description: desc, price: price, bookingMode: "slot", durationMinutes: minutes, minAge: minAge,
@@ -67,9 +67,9 @@ final class DemoBackend: Backend {
 
     // MARK: - Вход
 
-    func requestCode(phone: String) async throws { await pause() }
+    func requestCode(email: String) async throws { await pause() }
 
-    func verify(phone: String, code: String) async throws {
+    func verify(email: String, code: String) async throws {
         await pause()
         guard code.count == 6, code.allSatisfy(\.isNumber) else {
             throw APIError(status: 400, code: "invalid_code", message: "Код из 6 цифр. В демо-режиме подойдёт любой.")
@@ -325,8 +325,8 @@ extension DemoBackend {
 
     func legalDocument(_ code: String) async throws -> LegalDocument {
         await pause()
-        guard code == DemoLegal.rules.code else { throw APIError(status: 404, code: "not_found", message: "Документ не найден") }
-        return DemoLegal.rules
+        guard let doc = DemoLegal.document(code) else { throw APIError(status: 404, code: "not_found", message: "Документ не найден") }
+        return doc
     }
 
     func menu(_ restaurantId: String) async throws -> RestaurantMenu {

@@ -63,6 +63,25 @@ export class AuthService {
     return { token, csrf, expiresAt };
   }
 
+  /** Смена своего пароля: нужен текущий, остальные сеансы этого сотрудника закрываются. */
+  async changePassword(user: StaffUser, current: string, next: string, ip: string | null) {
+    const row = await this.db.selectFrom('app_user').select('password_hash').where('id', '=', user.id).executeTakeFirstOrThrow();
+    if (!(await argon2.verify(row.password_hash, current).catch(() => false))) {
+      throw new UnauthorizedException('Текущий пароль неверный');
+    }
+    await this.db.transaction().execute(async (trx) => {
+      await trx.updateTable('app_user').set({ password_hash: await AuthService.hashPassword(next) }).where('id', '=', user.id).execute();
+      await trx
+        .updateTable('session')
+        .set({ revoked_at: new Date() })
+        .where('user_id', '=', user.id)
+        .where('id', '!=', user.sessionId)
+        .where('revoked_at', 'is', null)
+        .execute();
+      await this.audit.write({ propertyId: user.propertyId, actorId: user.id, action: 'auth.password_changed', entity: 'app_user', entityId: user.id, ip }, trx);
+    });
+  }
+
   async logout(sessionId: string) {
     await this.db.updateTable('session').set({ revoked_at: new Date() }).where('id', '=', sessionId).execute();
   }

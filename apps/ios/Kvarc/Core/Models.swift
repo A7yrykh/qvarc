@@ -1,6 +1,6 @@
 import Foundation
 
-// Модели повторяют ответы сервера QVARC (backend/docs/openapi.yaml).
+// Модели повторяют ответы гостевого API QVARC (apps/api/src/guest-app).
 // Все суммы — в копейках, все даты — ISO 8601 в UTC.
 
 struct AuthTokens: Decodable {
@@ -430,7 +430,7 @@ struct UnitType: Codable, Identifiable, Hashable {
     let bedrooms: Int?
     let amenities: [String]
     let photos: [UnitPhoto]
-    /// id категории в TravelLine — для ссылки на бронирование
+    /// Внешний id категории для ссылки на бронирование; сервер QVARC его не передаёт
     let externalId: String?
 
     var facts: String {
@@ -459,7 +459,7 @@ struct PropertyInfo: Codable, Hashable {
     let faq: [FAQItem]
     let unitTypes: [UnitType]
 
-    /// Ссылка на бронирование конкретной категории на сайте (модуль TravelLine)
+    /// Ссылка на модуль бронирования QVARC
     func bookingURL(for t: UnitType) -> URL? {
         guard let base = bookingUrl else { return nil }
         guard let ext = t.externalId else { return URL(string: base) }

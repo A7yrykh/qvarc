@@ -60,7 +60,8 @@ export default function CalendarPage() {
     return { gridColumn: `${start + 2} / ${end + 2}` };
   };
 
-  const unassigned = data?.stays.filter((s) => !s.unit_id) ?? [];
+  // Выехавшим гостям номер уже не назначить: у перенесённых из TravelLine прошлых броней его нет
+  const unassigned = data?.stays.filter((s) => !s.unit_id && s.status !== 'checked_out') ?? [];
 
   return (
     <div className="stack">

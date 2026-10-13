@@ -75,3 +75,10 @@ label.check input { width: 18px; height: 18px; margin-top: 2px; flex: none; }
 .summary { display: grid; gap: 6px; }
 .summary .line { display: flex; justify-content: space-between; gap: 12px; }
 .status { display: inline-block; padding: 3px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; }
+
+/* Документы: правила проживания, политика конфиденциальности */
+.doc h1 { font-size: 22px; line-height: 1.3; }
+.doc h2 { font-size: 16px; margin-top: 24px; }
+.doc p { margin: 8px 0; line-height: 1.55; }
+.doc p.bullet { padding-left: 18px; position: relative; }
+.doc p.bullet::before { content: '•'; position: absolute; left: 4px; }

@@ -8,6 +8,11 @@ import { DbModule } from './common/db.module';
 import { ErrorFilter } from './common/errors';
 import { CONFIG } from './common/tokens';
 import type { AppConfig } from './config';
+import { CheckinService } from './guest-app/checkin.service';
+import { GuestAppController } from './guest-app/guest-app.controller';
+import { GuestAppService } from './guest-app/guest-app.service';
+import { GuestAuthService } from './guest-app/guest-auth.service';
+import { DisabledMailSender, LogMailSender, MAIL_SENDER, SmtpMailSender } from './common/mail';
 import { GuestsController } from './guests/guests.controller';
 import { GuestsService } from './guests/guests.service';
 import { AuthController } from './iam/auth.controller';
@@ -15,6 +20,7 @@ import { AuthGuard } from './iam/auth.guard';
 import { AuthService } from './iam/auth.service';
 import { UsersController } from './iam/users.controller';
 import { UsersService } from './iam/users.service';
+import { ImportsController } from './imports/imports.controller';
 import { InventoryController } from './inventory/inventory.controller';
 import { InventoryService } from './inventory/inventory.service';
 import { RateGridService } from './inventory/rate-grid.service';
@@ -38,7 +44,7 @@ export class AppModule {
     return {
       module: AppModule,
       imports: [configModule, DbModule],
-      controllers: [AuthController, UsersController, InventoryController, GuestsController, BookingsController, PaymentsController, PublicController],
+      controllers: [AuthController, UsersController, InventoryController, GuestsController, BookingsController, PaymentsController, PublicController, GuestAppController, ImportsController],
       providers: [
         AuthService,
         UsersService,
@@ -50,6 +56,13 @@ export class AppModule {
         HoldsService,
         PaymentsService,
         PublicService,
+        GuestAuthService,
+        GuestAppService,
+        CheckinService,
+        {
+          provide: MAIL_SENDER,
+          useFactory: () => (config.mail.mode === 'smtp' ? new SmtpMailSender(config.mail.smtpUrl!, config.mail.from) : config.mail.mode === 'log' ? new LogMailSender() : new DisabledMailSender()),
+        },
         { provide: PAYMENT_PROVIDER, useFactory: () => (config.payments.sber ? new SberProvider(config.payments.sber) : new SandboxProvider(config.payments.sandboxSecret, config.apiPublicUrl)) },
         { provide: APP_GUARD, useClass: AuthGuard },
         { provide: APP_FILTER, useClass: ErrorFilter },

@@ -9,8 +9,8 @@ protocol Backend: AnyObject {
     var hasSession: Bool { get }
     var onSessionExpired: (() -> Void)? { get set }
 
-    func requestCode(phone: String) async throws
-    func verify(phone: String, code: String) async throws
+    func requestCode(email: String) async throws
+    func verify(email: String, code: String) async throws
     func logout() async
 
     func myBookings() async throws -> [Booking]

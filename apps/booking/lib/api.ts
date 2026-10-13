@@ -1,7 +1,9 @@
 // Клиент публичного API модуля бронирования
-export const PROPERTY = process.env.NEXT_PUBLIC_PROPERTY_CODE ?? 'qvarc-uvildy';
-export const PRIVACY_URL = process.env.NEXT_PUBLIC_PRIVACY_URL ?? '';
-export const OFFER_URL = process.env.NEXT_PUBLIC_OFFER_URL ?? '';
+export const PROPERTY = process.env.NEXT_PUBLIC_PROPERTY_CODE ?? 'kvarc';
+// Политика и правила по умолчанию открываются из системы (страница /docs/<код>), их текст загружается командой import-guest-app
+export const PRIVACY_URL = process.env.NEXT_PUBLIC_PRIVACY_URL ?? '/docs/privacy';
+export const RULES_URL = process.env.NEXT_PUBLIC_RULES_URL ?? '/docs/rules';
+export const OFFER_URL = process.env.NEXT_PUBLIC_OFFER_URL ?? '/docs/offer';
 
 export class ApiError extends Error {
   constructor(public status: number, public body: { message?: string; code?: string; issues?: { path: string; message: string }[] }) {
@@ -55,9 +57,17 @@ export interface Tier { days_before: number; penalty_pct: number; penalty_nights
 const daysText = (n: number) => (n === 1 ? 'сутки' : `${n} дн.`);
 const penaltyText = (t: Tier) =>
   t.penalty_nights !== undefined
-    ? t.penalty_nights === 0 ? 'бесплатно' : t.penalty_nights === 1 ? 'удерживается стоимость первой ночи' : `удерживается стоимость первых ${t.penalty_nights} ночей`
+    ? t.penalty_nights === 0 ? 'бесплатно' : t.penalty_nights === 1 ? 'удерживается стоимость одних суток' : `удерживается стоимость первых ${t.penalty_nights} ночей`
     : t.penalty_pct === 0 ? 'бесплатно' : `удерживается ${t.penalty_pct}% стоимости`;
-/** Условия отмены простыми словами: «за сутки и более до заезда — бесплатно; позже — удерживается стоимость первой ночи» */
+/** Условия отмены простыми словами: «за 3 дн. и более до заезда — бесплатно; менее чем за 3 дн. — удерживается стоимость одних суток» */
+export interface DepositRule { season: string; daysBefore: number }
+/** Сезонный депозит из оферты: «Летний сезон: при отмене менее чем за 14 дней до заезда оплата остаётся на депозите…» */
+export function depositText(rule: DepositRule | null | undefined, short = false) {
+  if (!rule) return null;
+  if (short) return `${rule.season}: при отмене менее чем за ${rule.daysBefore} дн. оплата остаётся на депозите`;
+  return `${rule.season}: при отмене менее чем за ${rule.daysBefore} дн. до заезда оплата не возвращается на карту, а остаётся на вашем депозите, им можно оплатить проживание позже.`;
+}
+
 export function cancellationText(tiers: Tier[] | null) {
   if (!tiers) return 'Невозвратный тариф: при отмене оплата не возвращается';
   const sorted = [...tiers].sort((a, b) => b.days_before - a.days_before);

@@ -335,6 +335,16 @@ export class BookingsService {
     });
   }
 
+  /** Депозит гостя, оставшийся после отмены этой брони в сезон (договор-оферта п.5) */
+  depositFrom(bookingId: string) {
+    return this.db
+      .selectFrom('guest_deposit')
+      .select(['amount_minor', 'balance_minor', 'season', 'created_at'])
+      .where('source_booking_id', '=', bookingId)
+      .executeTakeFirst()
+      .then((d) => d ?? null);
+  }
+
   async get(user: StaffUser | null, id: string, trx: Database = this.db) {
     const b = await trx
       .selectFrom('booking as b')

@@ -11,3 +11,7 @@ xcuserdata/
 DerivedData/
 *.xcuserstate
 .DS_Store
+out-demo/
+deploy/.env
+deploy/import/
+deploy/backups/

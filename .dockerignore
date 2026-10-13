@@ -1,0 +1,10 @@
+**/node_modules
+**/.next
+dist
+apps/admin/out-demo
+apps/ios
+.git
+*.log
+.env
+deploy/.env
+deploy/import

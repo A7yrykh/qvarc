@@ -127,6 +127,13 @@ struct CheckinView: View {
                         .font(.footnote.weight(.semibold)).foregroundStyle(Brand.graphite)
                 }
                 .padding(.leading, 44)
+                NavigationLink {
+                    LegalDocumentView(code: "privacy")
+                } label: {
+                    Label("Политика конфиденциальности", systemImage: "lock.doc")
+                        .font(.footnote.weight(.semibold)).foregroundStyle(Brand.graphite)
+                }
+                .padding(.leading, 44)
                 Toggle(isOn: $rulesChecked) {
                     Text("Я прочитал(а) правила проживания и согласен(на) на обработку персональных данных")
                         .font(.footnote).foregroundStyle(Brand.ink)

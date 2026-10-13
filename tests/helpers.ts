@@ -40,6 +40,8 @@ export async function setup(payments: AppConfig['payments'] = { provider: 'sandb
     payments,
     jobs: false,
     rateLimitFactor: 100,
+    mail: { mode: 'log', from: 'Кварц <test@localhost>' },
+    documentsKey: Buffer.alloc(32, 7),
   });
   await app.init();
   app.getHttpServer().setMaxListeners(50);

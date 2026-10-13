@@ -1,13 +1,13 @@
 'use client';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
-import { PROPERTY, api, cancellationText, diffDays, errorText, fmtDate, nightsWord, rub, type Tier } from '@/lib/api';
+import { PROPERTY, api, cancellationText, depositText, diffDays, errorText, fmtDate, nightsWord, rub, type DepositRule, type Tier } from '@/lib/api';
 
 interface Manage {
   number: string; status: string; paymentState: string; propertyName: string; arrival: string; departure: string;
   checkInTime: string; checkOutTime: string; adults: number; childrenAges: number[]; guestName: string; accommodation: string;
-  ratePlan: string | null; cancellationPolicy: Tier[] | null; totalMinor: number; prepaymentDueMinor: number; paidMinor: number;
-  holdExpiresAt: string | null; canPay: boolean; cancellation: { penaltyMinor: number; refundMinor: number } | null;
+  ratePlan: string | null; cancellationPolicy: Tier[] | null; depositRule: DepositRule | null; depositMinor: number; totalMinor: number; prepaymentDueMinor: number; paidMinor: number;
+  holdExpiresAt: string | null; canPay: boolean; cancellation: { penaltyMinor: number; refundMinor: number; depositMinor: number } | null;
 }
 
 const STATUS: Record<string, { label: string; bg: string; fg: string }> = {
@@ -102,7 +102,9 @@ export default function ManagePage() {
         <div className="line"><span>Стоимость за {nightsWord(nights)}</span><b>{rub(b.totalMinor)}</b></div>
         <div className="line"><span>Оплачено</span><span>{rub(b.paidMinor)}</span></div>
         {['confirmed', 'checked_in'].includes(b.status) && balance > 0 && <div className="line"><span>К оплате при заезде</span><b>{rub(balance)}</b></div>}
+        {b.depositMinor > 0 && <div className="line"><span>На вашем депозите</span><b>{rub(b.depositMinor)}</b></div>}
         <div className="small muted">{cancellationText(b.cancellationPolicy)}</div>
+        {depositText(b.depositRule) && <div className="small muted">{depositText(b.depositRule)}</div>}
       </div>
 
       {b.cancellation && (
@@ -112,8 +114,12 @@ export default function ManagePage() {
           ) : (
             <>
               <div>
-                {b.cancellation.penaltyMinor === 0 ? 'Отмена бесплатная.' : `По условиям тарифа удерживается ${rub(b.cancellation.penaltyMinor)}.`}{' '}
-                {b.cancellation.refundMinor > 0 ? `Вернём ${rub(b.cancellation.refundMinor)} на карту, с которой была оплата.` : b.paidMinor > 0 ? 'Оплата не возвращается.' : ''}
+                {b.cancellation.depositMinor > 0
+                  ? `Оплата ${rub(b.cancellation.depositMinor)} не вернётся на карту и останется на вашем депозите. Им можно оплатить проживание позже, позвоните нам.`
+                  : <>
+                      {b.cancellation.penaltyMinor === 0 ? 'Отмена бесплатная.' : `По условиям тарифа удерживается ${rub(b.cancellation.penaltyMinor)}.`}{' '}
+                      {b.cancellation.refundMinor > 0 ? `Вернём ${rub(b.cancellation.refundMinor)} на карту, с которой была оплата.` : b.paidMinor > 0 ? 'Оплата не возвращается.' : ''}
+                    </>}
               </div>
               <div className="row">
                 <button className="btn primary" disabled={busy} onClick={cancel}>Да, отменить</button>

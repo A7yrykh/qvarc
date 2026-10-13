@@ -10,6 +10,9 @@ import { CSRF_COOKIE, SESSION_COOKIE } from './auth.guard';
 import { AuthService } from './auth.service';
 
 const LoginBody = z.object({ email: z.email(), password: z.string().min(1).max(200) });
+const PasswordBody = z
+  .object({ current: z.string().min(1).max(200), next: z.string().min(12, 'Новый пароль не короче 12 символов').max(200) })
+  .refine((b) => b.next !== b.current, { message: 'Новый пароль совпадает с текущим', path: ['next'] });
 
 @Controller('admin/v1/auth')
 export class AuthController {
@@ -36,6 +39,14 @@ export class AuthController {
     await this.auth.logout(user.sessionId);
     res.clearCookie(SESSION_COOKIE, { path: '/' });
     res.clearCookie(CSRF_COOKIE, { path: '/' });
+    return { ok: true };
+  }
+
+  @Post('password')
+  @HttpCode(200)
+  async changePassword(@Body() body: unknown, @CurrentUser() user: StaffUser, @ClientIp() ip: string | null) {
+    const b = parse(PasswordBody, body);
+    await this.auth.changePassword(user, b.current, b.next, ip);
     return { ok: true };
   }
 

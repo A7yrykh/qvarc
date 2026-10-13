@@ -1,6 +1,6 @@
 import Foundation
 
-/// Меню ресторана «Лето 2026» — из файла владельца (backend/data/menu-summer-2026.json).
+/// Меню ресторана «Лето 2026» — из файла владельца.
 /// Это настоящие блюда и цены; в демо-режиме ненастоящий только сам заказ.
 enum DemoMenu {
     private static func dish(_ id: String, _ name: String, _ price: Int, grams: Int?, ml: Int?, note: String?) -> MenuItem {

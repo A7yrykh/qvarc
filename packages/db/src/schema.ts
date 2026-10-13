@@ -140,10 +140,21 @@ export interface Booking {
   utm: Json | null;
 }
 
+export interface BookingCheckin {
+  booking_id: string;
+  guests_submitted_at: Timestamp | null;
+  pd_consent_at: Timestamp | null;
+  rules_accepted_at: Timestamp | null;
+  rules_version: string | null;
+  updated_at: Generated<Timestamp>;
+}
+
 export interface BookingGuest {
   booking_id: string;
   guest_id: string;
+  is_child: Generated<boolean>;
   is_primary: Generated<boolean>;
+  sort_order: Generated<number>;
   stay_id: string | null;
 }
 
@@ -375,6 +386,26 @@ export interface Guest {
   updated_at: Generated<Timestamp>;
 }
 
+export interface GuestAccount {
+  created_at: Generated<Timestamp>;
+  email: string | null;
+  id: Generated<string>;
+  last_login_at: Timestamp | null;
+  phone_e164: string | null;
+  property_id: string;
+}
+
+export interface GuestAppSession {
+  access_expires_at: Timestamp;
+  access_hash: Buffer;
+  account_id: string;
+  created_at: Generated<Timestamp>;
+  id: Generated<string>;
+  refresh_expires_at: Timestamp;
+  refresh_hash: Buffer;
+  revoked_at: Timestamp | null;
+}
+
 export interface GuestConsent {
   granted_at: Timestamp;
   guest_id: string;
@@ -386,12 +417,33 @@ export interface GuestConsent {
   text_version: string;
 }
 
+export interface GuestDeposit {
+  amount_minor: number;
+  balance_minor: number;
+  created_at: Generated<Timestamp>;
+  guest_id: string;
+  id: Generated<string>;
+  property_id: string;
+  season: string;
+  source_booking_id: string;
+}
+
+export interface GuestDepositUse {
+  amount_minor: number;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  deposit_id: string;
+  id: Generated<string>;
+  payment_id: string;
+}
+
 export interface GuestDocument {
   created_at: Generated<Timestamp>;
   created_by: string | null;
   doc_type: string;
   guest_id: string;
   id: Generated<string>;
+  number_masked: string | null;
   payload_enc: Buffer;
   retain_until: string;
   scan_key: string | null;
@@ -415,6 +467,19 @@ export interface GuestNote {
   kind: Generated<string>;
 }
 
+export interface GuestOtp {
+  attempts: Generated<number>;
+  code_hash: Buffer;
+  consumed_at: Timestamp | null;
+  created_at: Generated<Timestamp>;
+  email: string | null;
+  expires_at: Timestamp;
+  id: Generated<string>;
+  ip: string | null;
+  phone_e164: string | null;
+  property_id: string;
+}
+
 export interface Integration {
   config: Generated<Json>;
   id: Generated<string>;
@@ -434,6 +499,16 @@ export interface InvoiceReference {
   external_system: string;
   folio_id: string | null;
   id: Generated<string>;
+}
+
+export interface LegalDocument {
+  code: string;
+  issuer: string;
+  property_id: string;
+  sections: Json;
+  title: string;
+  updated_at: Generated<Timestamp>;
+  version: string;
 }
 
 export interface LockDevice {
@@ -646,6 +721,7 @@ export interface Property {
 export interface RatePlan {
   cancellation_policy: Json;
   code: string;
+  deposit_policy: Json | null;
   id: Generated<string>;
   included_services: Generated<string[]>;
   is_active: Generated<boolean>;
@@ -839,6 +915,7 @@ export interface DB {
   audit_log: AuditLog;
   availability_block: AvailabilityBlock;
   booking: Booking;
+  booking_checkin: BookingCheckin;
   booking_guest: BookingGuest;
   booking_item: BookingItem;
   booking_night_price: BookingNightPrice;
@@ -861,12 +938,18 @@ export interface DB {
   funnel_event: FunnelEvent;
   gift_certificate: GiftCertificate;
   guest: Guest;
+  guest_account: GuestAccount;
+  guest_app_session: GuestAppSession;
   guest_consent: GuestConsent;
+  guest_deposit: GuestDeposit;
+  guest_deposit_use: GuestDepositUse;
   guest_document: GuestDocument;
   guest_merge_log: GuestMergeLog;
   guest_note: GuestNote;
+  guest_otp: GuestOtp;
   integration: Integration;
   invoice_reference: InvoiceReference;
+  legal_document: LegalDocument;
   lock_device: LockDevice;
   lock_event: LockEvent;
   menu: Menu;

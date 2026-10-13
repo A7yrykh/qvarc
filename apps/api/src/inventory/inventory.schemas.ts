@@ -43,10 +43,20 @@ export const RatePlanBody = z.object({
     due: z.enum(['at_booking', 'days_before_arrival']),
     days: z.number().int().min(0).optional(),
   }),
+  /** Сезонный депозит по оферте: поздняя отмена в сезон оставляет оплату на депозите гостя */
+  depositPolicy: z
+    .object({
+      days_before: z.number().int().min(1).max(365),
+      seasons: z.array(z.object({ name: z.string().min(1).max(100), from: z.string(), to: z.string() })).min(1),
+    })
+    .nullable()
+    .default(null),
   isPublic: z.boolean().default(true),
   accommodationTypeIds: z.array(uuid).min(1),
   isActive: z.boolean().default(true),
 });
+
+export const RatePlanTermsBody = RatePlanBody.pick({ cancellationPolicy: true, prepaymentPolicy: true, depositPolicy: true });
 
 export const RateRuleBody = z
   .object({

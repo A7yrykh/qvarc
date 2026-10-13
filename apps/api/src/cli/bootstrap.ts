@@ -60,7 +60,7 @@ if (require.main === module) {
   bootstrapProperty(db, {
     legalName: env.QVARC_LEGAL_NAME!,
     inn: env.QVARC_INN,
-    propertyCode: env.QVARC_PROPERTY_CODE ?? 'qvarc-uvildy',
+    propertyCode: env.QVARC_PROPERTY_CODE ?? 'kvarc',
     propertyName: env.QVARC_PROPERTY_NAME!,
     timezone: env.QVARC_TIMEZONE ?? 'Asia/Yekaterinburg',
     ownerEmail: env.QVARC_OWNER_EMAIL!,
