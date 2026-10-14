@@ -15,6 +15,7 @@ const NAV = [
   { href: '/bookings', label: 'Брони', perm: 'booking.read' },
   { href: '/guests', label: 'Гости', perm: 'guest.read' },
   { href: '/prices', label: 'Цены и ограничения', perm: 'rates.read' },
+  { href: '/services', label: 'Услуги и прокат', perm: 'rental.read' },
   { href: '/settings/rooms', label: 'Номера', perm: 'inventory.read' },
   { href: '/settings/rates', label: 'Тарифы', perm: 'rates.read' },
   { href: '/settings/import', label: 'Перенос из TravelLine', perm: 'users.manage' },

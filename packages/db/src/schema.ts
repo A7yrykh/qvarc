@@ -267,6 +267,7 @@ export interface EquipmentReservation {
 
 export interface EquipmentType {
   buffer_minutes: Generated<number>;
+  created_at: Generated<Timestamp>;
   deposit_minor: Generated<number>;
   id: Generated<string>;
   is_active: Generated<boolean>;
@@ -798,35 +799,51 @@ export interface RolePermission {
 }
 
 export interface Service {
+  bookable_online: Generated<boolean>;
   cancellation_policy: Json | null;
+  cancellation_text: string | null;
   category: string;
+  close_time: Generated<string>;
+  created_at: Generated<Timestamp>;
   daily_capacity: number | null;
   description: string | null;
   duration_minutes: number | null;
   equipment_type_id: string | null;
   id: Generated<string>;
   is_active: Generated<boolean>;
+  max_quantity: Generated<number>;
   min_age: number | null;
   name: string;
+  open_time: Generated<string>;
   photos: Generated<Json>;
   price_minor: number;
   pricing: string;
   property_id: string;
+  requires_confirmation: Generated<boolean>;
   requires_slot: Generated<boolean>;
   responsible_role_id: string | null;
+  rules: string | null;
+  slot_step_minutes: Generated<number>;
+  sort_order: Generated<number>;
 }
 
 export interface ServiceBooking {
   amount_minor: number;
   assignee_id: string | null;
   booking_id: string | null;
+  booking_item_id: string | null;
+  cancelled_at: Timestamp | null;
   comment: string | null;
   created_at: Generated<Timestamp>;
+  created_by: string | null;
   guest_id: string;
   id: Generated<string>;
+  idempotency_key: string | null;
   period: string | null;
+  property_id: string | null;
   quantity: Generated<number>;
   service_id: string;
+  source: Generated<string>;
   status: Generated<string>;
 }
 

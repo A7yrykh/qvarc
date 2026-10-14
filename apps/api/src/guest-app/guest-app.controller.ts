@@ -1,8 +1,10 @@
-import { Body, Controller, Get, Headers, HttpCode, Param, Post, Put, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, Headers, HttpCode, NotFoundException, Param, Post, Put, Query, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { z } from 'zod';
-import { parse, uuid } from '../common/validation';
+import { isoDate, parse, uuid } from '../common/validation';
 import { ClientIp, Public } from '../iam/auth.decorators';
+import { ServiceBookingBody } from '../services/services.schemas';
+import { ServicesService } from '../services/services.service';
 import { CheckinService, DocumentsBody, GuestsBody, RulesBody } from './checkin.service';
 import { GuestAppService } from './guest-app.service';
 import { GuestAuthService } from './guest-auth.service';
@@ -24,6 +26,7 @@ export class GuestAppController {
     private readonly auth: GuestAuthService,
     private readonly svc: GuestAppService,
     private readonly checkin: CheckinService,
+    private readonly catalog: ServicesService,
   ) {}
 
   /** Сюда банк возвращает гостя после оплаты; приложение ловит адрес qvarc:// и проверяет платёж. */
@@ -113,12 +116,50 @@ export class GuestAppController {
     return this.svc.payment(await this.guest(code, a), parse(uuid, id));
   }
 
-  // Услуги, ресторан и заказы еды подключаются следующими шагами. Пока списки пустые,
-  // чтобы разделы приложения открывались без ошибок.
+  // Доп. услуги и прокат: каталог, свободное время, бронь к своей брони проживания
   @Get(':property/services')
   async services(@Param('property') code: string, @Headers('authorization') a?: string) {
-    await this.guest(code, a);
-    return [];
+    const g = await this.guest(code, a);
+    return this.catalog.catalog(g.propertyId);
+  }
+
+  @Get(':property/services/:id/slots')
+  async serviceSlots(@Param('property') code: string, @Param('id') id: string, @Query('date') date: string, @Headers('authorization') a?: string) {
+    const g = await this.guest(code, a);
+    return this.catalog.slots(g.propertyId, parse(uuid, id), parse(isoDate, date));
+  }
+
+  @Post(':property/service-bookings')
+  async bookService(@Param('property') code: string, @Body() b: unknown, @Headers('idempotency-key') key: string | undefined, @ClientIp() ip: string | null, @Headers('authorization') a?: string) {
+    const g = await this.guest(code, a);
+    const input = parse(ServiceBookingBody, b);
+    const own = await this.svc.bookingIds(g);
+    if (!own.includes(input.bookingId)) throw new NotFoundException('Бронь не найдена');
+    const idem = key ? `app:${g.accountId}:${parse(IdempotencyKey, key)}` : undefined;
+    const r = await this.catalog.book({ type: 'guest', id: g.accountId, propertyId: g.propertyId, ip }, input, 'guest_app', idem);
+    return this.catalog.forGuest(g.propertyId, r.id, own);
+  }
+
+  @Get(':property/service-bookings/my')
+  async myServiceBookings(@Param('property') code: string, @Headers('authorization') a?: string) {
+    const g = await this.guest(code, a);
+    return this.catalog.listForGuest(g.propertyId, await this.svc.bookingIds(g));
+  }
+
+  @Get(':property/service-bookings/:id')
+  async serviceBooking(@Param('property') code: string, @Param('id') id: string, @Headers('authorization') a?: string) {
+    const g = await this.guest(code, a);
+    return this.catalog.forGuest(g.propertyId, parse(uuid, id), await this.svc.bookingIds(g));
+  }
+
+  @Post(':property/service-bookings/:id/cancel')
+  @HttpCode(200)
+  async cancelService(@Param('property') code: string, @Param('id') id: string, @ClientIp() ip: string | null, @Headers('authorization') a?: string) {
+    const g = await this.guest(code, a);
+    const own = await this.svc.bookingIds(g);
+    const sbId = parse(uuid, id);
+    await this.catalog.act({ type: 'guest', id: g.accountId, propertyId: g.propertyId, ip }, sbId, 'cancel', { guestBookingIds: own });
+    return this.catalog.forGuest(g.propertyId, sbId, own);
   }
 
   @Get(':property/restaurants')

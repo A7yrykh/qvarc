@@ -11,17 +11,17 @@ export const SYSTEM_ROLES: Record<string, { name: string; perms: string[] | 'all
   reservations: {
     name: 'Администратор размещения',
     perms: ['inventory.read', 'rates.read', 'calendar.read', 'booking.read', 'booking.write', 'booking.status',
-      'guest.read', 'guest.contacts.read', 'guest.write', 'payment.read'],
+      'guest.read', 'guest.contacts.read', 'guest.write', 'payment.read', 'rental.read', 'rental.manage'],
   },
   front_desk: {
     name: 'Сотрудник ресепшена',
     perms: ['inventory.read', 'rates.read', 'calendar.read', 'booking.read', 'booking.write', 'booking.status',
-      'guest.read', 'guest.contacts.read', 'guest.write', 'payment.read'],
+      'guest.read', 'guest.contacts.read', 'guest.write', 'payment.read', 'rental.read', 'rental.manage'],
   },
   housekeeping: { name: 'Сотрудник уборки', perms: ['inventory.read', 'calendar.read'] },
   maintenance: { name: 'Сотрудник технической службы', perms: ['inventory.read', 'calendar.read'] },
   restaurant: { name: 'Сотрудник ресторана', perms: ['calendar.read'] },
-  rental: { name: 'Сотрудник проката', perms: ['calendar.read'] },
+  rental: { name: 'Сотрудник проката', perms: ['calendar.read', 'rental.read', 'rental.manage'] },
   accountant: { name: 'Бухгалтер', perms: ['booking.read', 'payment.read', 'reports.read'] },
   marketing: { name: 'Маркетолог', perms: ['rates.read', 'reports.read'] },
   guest_relations: {

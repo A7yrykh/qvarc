@@ -4,6 +4,7 @@ import { useRouteId } from '@/lib/route';
 import { useCallback, useEffect, useState } from 'react';
 import { CHANNEL, STATUS, byName, diffDays, errorText, fmtDate, get, patch, post, rub, toMinor } from '@/lib/api';
 import { can, useMe } from '@/components/Shell';
+import BookingServices from './BookingServices';
 
 interface Stay { id: string; unit_id: string | null; unit_name: string | null; type_name: string; accommodation_type_id: string; stay: string; is_active: boolean; adults: number; children: number }
 interface Booking {
@@ -199,6 +200,10 @@ export default function BookingView() {
           )}
         </div>
       </div>
+
+      {can(me, 'rental.read') && (
+        <BookingServices bookingId={b.id} arrival={b.arrival} departure={b.departure} editable={editable} manage={can(me, 'rental.manage')} onChange={load} />
+      )}
 
       {editable && (
         <div className="grid2">

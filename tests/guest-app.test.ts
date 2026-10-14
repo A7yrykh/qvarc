@@ -129,7 +129,7 @@ describe('гостевое приложение', () => {
     expect(rest.body.amount).toBe(840_000);
 
     const service = await http.post(`${G}/payments`).set(auth).set('idempotency-key', randomUUID()).send({ purpose: 'service_booking', targetId: my.id });
-    expect(service.body.error.code).toBe('not_available');
+    expect(service.body.error.code).toBe('not_found'); // услуги оплачиваются по брони услуги, а не по брони проживания
 
     expect((await http.get(`${G}/services`).set(auth)).body).toEqual([]);
     const back = await http.get('/guest/v1/payment-return');
