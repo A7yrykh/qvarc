@@ -238,6 +238,49 @@ export interface ChannelMapping {
   local_id: string;
 }
 
+export interface Competitor {
+  created_at: Generated<Timestamp>;
+  id: Generated<string>;
+  is_active: Generated<boolean>;
+  name: string;
+  note: string | null;
+  property_id: string;
+  site_url: string | null;
+  source_kind: Generated<string>;
+  source_ref: string | null;
+}
+
+export interface CompetitorCategory {
+  accommodation_type_id: string | null;
+  competitor_id: string;
+  external_ref: string;
+  factor: Generated<Numeric>;
+  id: Generated<string>;
+  name: string;
+}
+
+export interface CompetitorFetchRun {
+  competitor_id: string;
+  error: string | null;
+  finished_at: Timestamp | null;
+  id: Generated<string>;
+  prices: Generated<number>;
+  started_at: Generated<Timestamp>;
+  status: Generated<string>;
+}
+
+export interface CompetitorPrice {
+  available: Generated<boolean>;
+  collected_at: Generated<Timestamp>;
+  collected_on: string;
+  competitor_id: string;
+  external_ref: string;
+  id: Generated<string>;
+  night: string;
+  price_minor: number | null;
+  source: Generated<string>;
+}
+
 export interface EquipmentConditionLog {
   condition: string;
   damage_note: string | null;
@@ -678,15 +721,52 @@ export interface Permission {
 
 export interface PriceRecommendation {
   accommodation_type_id: string;
+  applied_auto: Generated<boolean>;
+  created_at: Generated<Timestamp>;
   current_minor: number;
   decided_at: Timestamp | null;
   decided_by: string | null;
   id: Generated<string>;
   night: string;
+  property_id: string | null;
   rate_plan_id: string;
+  rate_rule_id: string | null;
   reasons: Json;
   status: Generated<string>;
   suggested_minor: number;
+}
+
+export interface PricingFloor {
+  accommodation_type_id: string;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  id: Generated<string>;
+  label: string | null;
+  min_price_minor: number;
+  period: string;
+  property_id: string;
+}
+
+export interface PricingSettings {
+  auto_apply: Generated<boolean>;
+  collect_every_hours: Generated<number>;
+  horizon_days: Generated<number>;
+  last_minute_days: Generated<number>;
+  last_recompute_at: Timestamp | null;
+  last_run_at: Timestamp | null;
+  max_discount_pct: Generated<Numeric>;
+  min_discount_pct: Generated<Numeric>;
+  occupancy_high_pct: Generated<number>;
+  occupancy_low_pct: Generated<number>;
+  property_id: string;
+  rate_plan_id: string | null;
+  reference: Generated<string>;
+  round_to_minor: Generated<number>;
+  surge_markup_pct: Generated<Numeric>;
+  surge_min_bookings: Generated<number>;
+  surge_window_hours: Generated<number>;
+  updated_at: Generated<Timestamp>;
+  updated_by: string | null;
 }
 
 export interface PromoCode {
@@ -757,6 +837,7 @@ export interface RateRule {
   price_minor: number | null;
   priority: Generated<number>;
   rate_plan_id: string;
+  source: Generated<string>;
   weekdays: Generated<number[]>;
 }
 
@@ -925,6 +1006,10 @@ export interface DB {
   channel: Channel;
   channel_event: ChannelEvent;
   channel_mapping: ChannelMapping;
+  competitor: Competitor;
+  competitor_category: CompetitorCategory;
+  competitor_fetch_run: CompetitorFetchRun;
+  competitor_price: CompetitorPrice;
   equipment_condition_log: EquipmentConditionLog;
   equipment_reservation: EquipmentReservation;
   equipment_type: EquipmentType;
@@ -966,6 +1051,8 @@ export interface DB {
   payment_status_transition: PaymentStatusTransition;
   permission: Permission;
   price_recommendation: PriceRecommendation;
+  pricing_floor: PricingFloor;
+  pricing_settings: PricingSettings;
   promo_code: PromoCode;
   property: Property;
   rate_plan: RatePlan;

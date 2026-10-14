@@ -29,6 +29,9 @@ import { PaymentsService } from './payments/payments.service';
 import { PAYMENT_PROVIDER } from './payments/provider';
 import { SandboxProvider } from './payments/sandbox.provider';
 import { SberProvider } from './payments/sber.provider';
+import { PricingController } from './pricing/pricing.controller';
+import { PricingService } from './pricing/pricing.service';
+import { COMPETITOR_SOURCES, defaultSources } from './pricing/sources';
 import { PublicController } from './public/public.controller';
 import { PublicService } from './public/public.service';
 
@@ -44,7 +47,7 @@ export class AppModule {
     return {
       module: AppModule,
       imports: [configModule, DbModule],
-      controllers: [AuthController, UsersController, InventoryController, GuestsController, BookingsController, PaymentsController, PublicController, GuestAppController, ImportsController],
+      controllers: [AuthController, UsersController, InventoryController, GuestsController, BookingsController, PaymentsController, PublicController, GuestAppController, ImportsController, PricingController],
       providers: [
         AuthService,
         UsersService,
@@ -59,6 +62,8 @@ export class AppModule {
         GuestAuthService,
         GuestAppService,
         CheckinService,
+        PricingService,
+        { provide: COMPETITOR_SOURCES, useFactory: defaultSources },
         {
           provide: MAIL_SENDER,
           useFactory: () => (config.mail.mode === 'smtp' ? new SmtpMailSender(config.mail.smtpUrl!, config.mail.from) : config.mail.mode === 'log' ? new LogMailSender() : new DisabledMailSender()),
