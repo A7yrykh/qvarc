@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { decideNight, demandScore, discountFor, pickFloor, type PricingParams } from './competitor-pricing';
 
-const p: PricingParams = { minDiscountPct: 20, maxDiscountPct: 30, reference: 'min', occupancyLowPct: 30, occupancyHighPct: 80, lastMinuteDays: 3, roundToMinor: 10_000 };
+const p: PricingParams = { minDiscountPct: 20, maxDiscountPct: 30, reference: 'min', occupancyLowPct: 30, occupancyHighPct: 80, lastMinuteDays: 3, roundToMinor: 10_000, surgeMinBookings: 2, surgeMarkupPct: 10 };
 const night = (over: object = {}) => ({
   occupied: 0, total: 4, leadDays: 30, floorMinor: 300_000, currentMinor: 500_000,
   quotes: [{ competitor: 'Верт', priceMinor: 1_000_000 }, { competitor: 'Гости', priceMinor: 800_000 }],
@@ -52,6 +52,18 @@ describe('цена от соседей', () => {
   it('явно ошибочная цена соседа отбрасывается', () => {
     const d = decideNight(night({ quotes: [{ competitor: 'Верт', priceMinor: 500 }, { competitor: 'Гости', priceMinor: 800_000 }] }), p);
     expect(d.kind === 'price' && d.reasons.referenceMinor).toBe(800_000);
+  });
+
+  it('ажиотаж: скидка минимальная и наценка сверху', () => {
+    const d = decideNight(night({ recentBookings: 2 }), p);
+    expect(d.kind === 'price' && d.suggestedMinor).toBe(700_000);
+    expect(d.kind === 'price' && d.reasons.surge).toBe(true);
+    expect(decideNight(night({ recentBookings: 1 }), p)).toMatchObject({ suggestedMinor: 560_000 });
+  });
+
+  it('при ажиотаже цена не снижается', () => {
+    const d = decideNight(night({ recentBookings: 3, currentMinor: 900_000 }), p);
+    expect(d.kind === 'price' && d.suggestedMinor).toBe(900_000);
   });
 
   it('минимум: самый короткий период важнее сезона', () => {

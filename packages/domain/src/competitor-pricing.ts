@@ -4,6 +4,8 @@
  * Спрос 0..1 считается по нашей загрузке категории на эту ночь:
  * ниже occupancyLow — спроса нет (скидка максимальная), выше occupancyHigh — спрос высокий (скидка минимальная).
  * За last_minute_days до заезда незанятые номера дешевеют: спрос считается вдвое ниже.
+ * Ажиотаж (не меньше surgeMinBookings новых броней на эту ночь за последние часы): скидка минимальная,
+ * цена поднимается ещё на surgeMarkupPct и не становится ниже текущей.
  */
 
 export interface CompetitorQuote {
@@ -20,6 +22,8 @@ export interface PricingParams {
   occupancyHighPct: number;
   lastMinuteDays: number;
   roundToMinor: number;
+  surgeMinBookings: number;
+  surgeMarkupPct: number;
 }
 
 export interface NightInput {
@@ -28,6 +32,8 @@ export interface NightInput {
   total: number;
   /** Дней до ночи от сегодня */
   leadDays: number;
+  /** Новых броней этой категории на эту ночь за последние часы */
+  recentBookings?: number;
   quotes: CompetitorQuote[];
   /** Минимальная цена ночи. Без неё цена не предлагается. */
   floorMinor: number | null;
@@ -56,6 +62,8 @@ export interface PricingReasons {
   floorMinor: number;
   floorApplied: boolean;
   currentMinor: number | null;
+  recentBookings: number;
+  surge: boolean;
 }
 
 /** Явно ошибочные цены соседей (сбой разбора страницы) в расчёт не берутся. */
@@ -81,16 +89,20 @@ export function decideNight(input: NightInput, p: PricingParams): NightDecision 
     .map((q) => q.priceMinor)
     .filter((v): v is number => v !== null && v >= SANE_PRICE_MINOR.min && v <= SANE_PRICE_MINOR.max);
   const occupancyPct = input.total > 0 ? Math.round((input.occupied / input.total) * 100) : 0;
-  const base = { competitors, soldOut, occupancyPct, leadDays: input.leadDays, currentMinor: input.currentMinor };
+  const recentBookings = input.recentBookings ?? 0;
+  const surge = recentBookings >= p.surgeMinBookings;
+  const base = { competitors, soldOut, occupancyPct, leadDays: input.leadDays, currentMinor: input.currentMinor, recentBookings, surge };
   if (input.total > 0 && input.occupied >= input.total) return { kind: 'skip', reason: 'no_rooms', reasons: base };
   if (!prices.length) return { kind: 'skip', reason: 'no_competitor_prices', reasons: base };
   if (input.floorMinor === null) return { kind: 'skip', reason: 'no_floor', reasons: base };
 
   const referenceMinor = p.reference === 'avg' ? Math.round(prices.reduce((s, v) => s + v, 0) / prices.length) : Math.min(...prices);
-  const demand = demandScore(input.occupied, input.total, input.leadDays, p);
+  const demand = surge ? 1 : demandScore(input.occupied, input.total, input.leadDays, p);
   const discountPct = discountFor(demand, p);
-  const rawMinor = referenceMinor * (1 - discountPct / 100);
-  const rounded = Math.round(rawMinor / p.roundToMinor) * p.roundToMinor;
+  const rawMinor = referenceMinor * (1 - discountPct / 100) * (surge ? 1 + p.surgeMarkupPct / 100 : 1);
+  let rounded = Math.round(rawMinor / p.roundToMinor) * p.roundToMinor;
+  // При ажиотаже цена только растёт
+  if (surge && input.currentMinor !== null) rounded = Math.max(rounded, input.currentMinor);
   const floorApplied = rounded < input.floorMinor;
   const suggestedMinor = floorApplied ? input.floorMinor : rounded;
   return {

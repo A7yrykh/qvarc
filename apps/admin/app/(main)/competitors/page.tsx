@@ -6,7 +6,7 @@ import { can, useMe } from '@/components/Shell';
 interface Settings {
   auto_apply: boolean; rate_plan_id: string | null; min_discount_pct: string; max_discount_pct: string; reference: 'min' | 'avg';
   horizon_days: number; occupancy_low_pct: number; occupancy_high_pct: number; last_minute_days: number; collect_every_hours: number;
-  round_to_minor: number; last_run_at: string | null;
+  round_to_minor: number; surge_window_hours: number; surge_min_bookings: number; surge_markup_pct: string; last_run_at: string | null;
 }
 interface Category { id: string; external_ref: string; name: string; accommodation_type_id: string | null; factor: string }
 interface Run { status: 'running' | 'ok' | 'error'; started_at: string; prices: number; error: string | null }
@@ -14,7 +14,7 @@ interface Competitor { id: string; name: string; site_url: string | null; source
 interface Rec {
   id: string; night: string; type_name: string; accommodation_type_id: string; current_minor: number; suggested_minor: number; status: string;
   applied_auto: boolean; decided_at: string | null; decided_by_name: string | null;
-  reasons: { referenceMinor?: number; competitors?: { competitor: string; priceMinor: number | null }[]; occupancyPct?: number; discountPct?: number; floorMinor?: number; floorApplied?: boolean };
+  reasons: { referenceMinor?: number; competitors?: { competitor: string; priceMinor: number | null }[]; occupancyPct?: number; discountPct?: number; floorMinor?: number; floorApplied?: boolean; surge?: boolean; recentBookings?: number };
 }
 interface Floor { id: string; accommodation_type_id: string; period: string; min_price_minor: number; label: string | null }
 interface Type { id: string; name: string }
@@ -132,6 +132,7 @@ function toBody(s: Settings, over: Partial<Settings> = {}) {
     autoApply: x.auto_apply, ratePlanId: x.rate_plan_id, minDiscountPct: Number(x.min_discount_pct), maxDiscountPct: Number(x.max_discount_pct),
     reference: x.reference, horizonDays: x.horizon_days, occupancyLowPct: x.occupancy_low_pct, occupancyHighPct: x.occupancy_high_pct,
     lastMinuteDays: x.last_minute_days, collectEveryHours: x.collect_every_hours, roundToMinor: x.round_to_minor,
+    surgeWindowHours: x.surge_window_hours, surgeMinBookings: x.surge_min_bookings, surgeMarkupPct: Number(x.surge_markup_pct),
   };
 }
 
@@ -169,6 +170,7 @@ function Recs({ writable, onError }: { writable: boolean; onError: (s: string) =
               <td style={{ fontWeight: 600 }}>
                 {rub(r.suggested_minor)}
                 {r.reasons.floorApplied && <span className="badge tone-warn" style={{ marginLeft: 6 }}>минимум</span>}
+                {r.reasons.surge && <span className="badge tone-bad" style={{ marginLeft: 6 }} title={`Новых броней на эту ночь: ${r.reasons.recentBookings}`}>ажиотаж</span>}
                 {writable && <button className="btn" style={{ marginLeft: 8 }} onClick={() => decide([r.id], true)}>Принять</button>}
               </td>
             </tr>
@@ -412,10 +414,13 @@ function SettingsForm({ settings, plans, writable, onSaved, onError }: { setting
         <label>Последние дни перед заездом (свободное дешевеет), дн.<input type="number" min={0} max={60} value={s.last_minute_days} disabled={!writable} onChange={num('last_minute_days')} /></label>
         <label>Считать цены вперёд на, дн.<input type="number" min={1} max={365} value={s.horizon_days} disabled={!writable} onChange={num('horizon_days')} /></label>
         <label>Собирать цены раз в, ч<input type="number" min={1} max={168} value={s.collect_every_hours} disabled={!writable} onChange={num('collect_every_hours')} /></label>
+        <label>Ажиотаж: новых броней на ночь, не меньше<input type="number" min={1} max={100} value={s.surge_min_bookings} disabled={!writable} onChange={num('surge_min_bookings')} /></label>
+        <label>Ажиотаж: брони за последние, ч<input type="number" min={1} max={720} value={s.surge_window_hours} disabled={!writable} onChange={num('surge_window_hours')} /></label>
+        <label>Ажиотаж: поднять цену ещё на, %<input type="number" min={0} max={100} step="0.5" value={Number(s.surge_markup_pct)} disabled={!writable} onChange={num('surge_markup_pct')} /></label>
         <label>Округлять до, ₽<input type="number" min={1} value={s.round_to_minor / 100} disabled={!writable} onChange={(e) => setS({ ...s, round_to_minor: Math.round(Number(e.target.value) * 100) })} /></label>
       </div>
       <div className="muted" style={{ fontSize: 13 }}>
-        Скидка от цены соседей плавно меняется между этими значениями по нашей загрузке категории на ночь. За последние дни перед заездом свободные номера считаются как при вдвое меньшем спросе. Цена не опускается ниже минимальной.
+        Скидка от цены соседей плавно меняется между этими значениями по нашей загрузке категории на ночь. За последние дни перед заездом свободные номера считаются как при вдвое меньшем спросе. При ажиотаже (много новых броней на ночь за последние часы) скидка минимальная, цена поднимается ещё на заданный процент и не снижается; пересчёт идёт в течение 10 минут после брони. Цена не опускается ниже минимальной.
       </div>
       {writable && (
         <div className="row">

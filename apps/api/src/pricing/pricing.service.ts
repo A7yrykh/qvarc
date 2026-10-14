@@ -63,6 +63,14 @@ export class PricingService implements OnModuleInit, OnModuleDestroy {
       await this.collectAll(property_id);
       await this.recompute(property_id, null);
     }
+    // Новые брони пересчитывают цены сразу, не дожидаясь сбора: так ажиотаж поднимает цену в течение 10 минут
+    const booked = await sql<{ property_id: string }>`
+      UPDATE pricing_settings ps SET last_recompute_at = now()
+       WHERE ps.rate_plan_id IS NOT NULL
+         AND ps.last_recompute_at IS NOT NULL
+         AND EXISTS (SELECT 1 FROM booking b WHERE b.property_id = ps.property_id AND b.created_at > ps.last_recompute_at)
+       RETURNING property_id`.execute(this.db);
+    for (const { property_id } of booked.rows) await this.recompute(property_id, null);
     return due.rows.length;
   }
 
@@ -92,6 +100,9 @@ export class PricingService implements OnModuleInit, OnModuleDestroy {
           last_minute_days: input.lastMinuteDays,
           collect_every_hours: input.collectEveryHours,
           round_to_minor: input.roundToMinor,
+          surge_window_hours: input.surgeWindowHours,
+          surge_min_bookings: input.surgeMinBookings,
+          surge_markup_pct: String(input.surgeMarkupPct),
           updated_by: a.user.id,
           updated_at: new Date(),
         })
@@ -113,6 +124,8 @@ export class PricingService implements OnModuleInit, OnModuleDestroy {
       occupancyHighPct: s.occupancy_high_pct,
       lastMinuteDays: s.last_minute_days,
       roundToMinor: s.round_to_minor,
+      surgeMinBookings: s.surge_min_bookings,
+      surgeMarkupPct: Number(s.surge_markup_pct),
     };
   }
 
@@ -340,6 +353,7 @@ export class PricingService implements OnModuleInit, OnModuleDestroy {
    */
   async recompute(propertyId: string, userId: string | null) {
     const s = await this.settings(propertyId);
+    await this.db.updateTable('pricing_settings').set({ last_recompute_at: new Date() }).where('property_id', '=', propertyId).execute();
     if (!s.rate_plan_id) return { proposed: 0, applied: 0, skipped: {} as Record<string, number>, message: 'Не выбран тариф' };
     const params = this.params(s);
     const today = await this.today(propertyId);
@@ -367,7 +381,7 @@ export class PricingService implements OnModuleInit, OnModuleDestroy {
     const skipped: Record<string, number> = {};
     for (const t of types) {
       const rules = await this.availability.loadRules(t.id, s.rate_plan_id, today, to);
-      const occ = await this.occupancy(t.id, today, to);
+      const occ = await this.occupancy(t.id, today, to, s.surge_window_hours);
       const typeFloors = floors.filter((f) => f.typeId === t.id);
       for (const night of nightsBetween(today, to)) {
         const resolved = resolveRules(rules, night);
@@ -377,7 +391,7 @@ export class PricingService implements OnModuleInit, OnModuleDestroy {
           continue;
         }
         const quotes = this.quotesFor(prices, t.id, night);
-        const o = occ.get(night) ?? { occupied: 0, total: 0 };
+        const o = occ.get(night) ?? { occupied: 0, total: 0, recentBookings: 0 };
         const decision = decideNight({ ...o, leadDays: diffDays(today, night), quotes, floorMinor: pickFloor(typeFloors, night), currentMinor: resolved.priceMinor }, params);
         if (decision.kind === 'skip') {
           skipped[decision.reason] = (skipped[decision.reason] ?? 0) + 1;
@@ -432,17 +446,20 @@ export class PricingService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  /** Занятость категории по ночам: брони (в том числе без номера) и закрытые номера */
-  private async occupancy(typeId: string, from: string, to: string) {
-    const r = await sql<{ night: string; occupied: number; total: number }>`
+  /** Занятость категории по ночам: брони (в том числе без номера) и закрытые номера; и сколько броней на ночь сделано за последние часы */
+  private async occupancy(typeId: string, from: string, to: string, surgeWindowHours: number) {
+    const r = await sql<{ night: string; occupied: number; total: number; recent: number }>`
       SELECT n::date::text AS night,
+             (SELECT count(*) FROM booking_stay s JOIN booking b ON b.id = s.booking_id
+               WHERE s.accommodation_type_id = ${typeId} AND s.is_active AND s.stay @> n::date
+                 AND b.created_at > now() - ${surgeWindowHours} * interval '1 hour')::int AS recent,
              (SELECT count(*) FROM accommodation_unit u WHERE u.accommodation_type_id = ${typeId} AND u.is_active)::int AS total,
              ((SELECT count(*) FROM booking_stay s WHERE s.accommodation_type_id = ${typeId} AND s.is_active AND s.stay @> n::date)
               + (SELECT count(*) FROM accommodation_unit u WHERE u.accommodation_type_id = ${typeId} AND u.is_active
                    AND EXISTS (SELECT 1 FROM availability_block b
                                 WHERE (b.unit_id = u.id OR b.accommodation_type_id = u.accommodation_type_id) AND b.period @> n::date)))::int AS occupied
         FROM generate_series(${from}::date, ${to}::date - 1, interval '1 day') n`.execute(this.db);
-    return new Map(r.rows.map((x) => [x.night, { occupied: Math.min(x.occupied, x.total), total: x.total }]));
+    return new Map(r.rows.map((x) => [x.night, { occupied: Math.min(x.occupied, x.total), total: x.total, recentBookings: x.recent }]));
   }
 
   private expire(id: string) {

@@ -49,7 +49,7 @@ afterAll(async () => {
 
 const settings = (over: object = {}) => ({
   autoApply: false, ratePlanId: ids.plan, minDiscountPct: 20, maxDiscountPct: 30, reference: 'min', horizonDays: 30,
-  occupancyLowPct: 30, occupancyHighPct: 80, lastMinuteDays: 3, collectEveryHours: 12, roundToMinor: 10_000, ...over,
+  occupancyLowPct: 30, occupancyHighPct: 80, lastMinuteDays: 3, collectEveryHours: 12, roundToMinor: 10_000, surgeWindowHours: 48, surgeMinBookings: 2, surgeMarkupPct: 10, ...over,
 });
 const gridPrice = async (typeId: string, night: string) => {
   const g = await owner.get(`/admin/v1/rate-grid?ratePlanId=${ids.plan}&from=${night}&to=${addDays(night, 1)}`);
@@ -178,6 +178,24 @@ describe('цены соседей', () => {
     expect(actions).toContain('pricing.auto_on');
     expect(actions).toContain('pricing.auto_apply');
     expect(actions).toContain('pricing.auto_remove');
+  });
+
+  it('ажиотаж: новые брони на ночь поднимают цену, пересчёт сразу после брони', async () => {
+    await owner.put('/admin/v1/pricing/settings', settings({ surgeMinBookings: 1, surgeMarkupPct: 10 }));
+    await owner.post('/admin/v1/pricing/run');
+    const night = addDays(today, 15);
+    const before = (await proposed()).find((x) => x.accommodation_type_id === ids.standard && x.night === night)!;
+    expect(before.suggested_minor).toBe(600_000);
+    const g = { lastName: 'Сидоров', firstName: 'Сидор', phone: '+79003334455', email: 's@example.com' };
+    expect((await owner.post('/admin/v1/bookings', { guest: g, accommodationTypeId: ids.standard, ratePlanId: ids.plan, arrival: night, departure: addDays(night, 1), adults: 2 })).status).toBe(201);
+    // Плановая проверка видит новую бронь и пересчитывает без сбора цен
+    await db.updateTable('pricing_settings').set({ last_run_at: new Date() }).execute();
+    await db.updateTable('pricing_settings').set({ last_recompute_at: new Date(Date.now() - 60_000) }).execute();
+    await app.get(PricingService).tick();
+    const after = (await proposed()).find((x) => x.accommodation_type_id === ids.standard && x.night === night)! as unknown as { suggested_minor: number; reasons: { surge: boolean } };
+    // Загрузка 50%, но ажиотаж: скидка 20% от 8 500 и +10% = 7 480 → 7 500
+    expect(after.reasons.surge).toBe(true);
+    expect(after.suggested_minor).toBe(750_000);
   });
 
   it('по расписанию сбор запускается раз в заданное число часов', async () => {

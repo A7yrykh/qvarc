@@ -752,6 +752,7 @@ export interface PricingSettings {
   collect_every_hours: Generated<number>;
   horizon_days: Generated<number>;
   last_minute_days: Generated<number>;
+  last_recompute_at: Timestamp | null;
   last_run_at: Timestamp | null;
   max_discount_pct: Generated<Numeric>;
   min_discount_pct: Generated<Numeric>;
@@ -761,6 +762,9 @@ export interface PricingSettings {
   rate_plan_id: string | null;
   reference: Generated<string>;
   round_to_minor: Generated<number>;
+  surge_markup_pct: Generated<Numeric>;
+  surge_min_bookings: Generated<number>;
+  surge_window_hours: Generated<number>;
   updated_at: Generated<Timestamp>;
   updated_by: string | null;
 }

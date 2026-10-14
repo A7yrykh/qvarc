@@ -14,6 +14,9 @@ export const SettingsBody = z
     lastMinuteDays: z.number().int().min(0).max(60),
     collectEveryHours: z.number().int().min(1).max(168),
     roundToMinor: z.number().int().positive().default(10_000),
+    surgeWindowHours: z.number().int().min(1).max(720).default(48),
+    surgeMinBookings: z.number().int().min(1).max(100).default(2),
+    surgeMarkupPct: z.number().min(0).max(100).default(10),
   })
   .refine((s) => s.minDiscountPct <= s.maxDiscountPct, { message: 'Наименьшая скидка больше наибольшей' })
   .refine((s) => s.occupancyLowPct < s.occupancyHighPct, { message: 'Порог низкой загрузки должен быть ниже порога высокой' });

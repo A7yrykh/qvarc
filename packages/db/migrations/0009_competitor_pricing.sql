@@ -67,7 +67,12 @@ CREATE TABLE pricing_settings (
   last_minute_days     int NOT NULL DEFAULT 3 CHECK (last_minute_days >= 0),
   collect_every_hours  int NOT NULL DEFAULT 12 CHECK (collect_every_hours BETWEEN 1 AND 168),
   round_to_minor       bigint NOT NULL DEFAULT 10000 CHECK (round_to_minor > 0),
+  -- Ажиотаж: столько новых броней на ночь за последние surge_window_hours часов поднимает цену на surge_markup_pct
+  surge_window_hours   int NOT NULL DEFAULT 48 CHECK (surge_window_hours BETWEEN 1 AND 720),
+  surge_min_bookings   int NOT NULL DEFAULT 2 CHECK (surge_min_bookings >= 1),
+  surge_markup_pct     numeric(5,2) NOT NULL DEFAULT 10 CHECK (surge_markup_pct >= 0 AND surge_markup_pct <= 100),
   last_run_at          timestamptz,
+  last_recompute_at    timestamptz,
   updated_by           uuid REFERENCES app_user(id),
   updated_at           timestamptz NOT NULL DEFAULT now(),
   CHECK (min_discount_pct <= max_discount_pct),
