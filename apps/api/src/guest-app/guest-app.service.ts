@@ -153,15 +153,24 @@ export class GuestAppService {
     return Promise.all(fresh.map((b) => this.toBooking(b)));
   }
 
+  /** Брони гостя: к ним можно добавлять услуги и прокат */
+  async bookingIds(guest: GuestAccount) {
+    return (await this.bookingsQuery(guest).execute()).map((b) => b.id);
+  }
+
   private async ownBooking(guest: GuestAccount, bookingId: string) {
     const b = await this.bookingsQuery(guest).where('b.id', '=', bookingId).executeTakeFirst();
     if (!b) throw new NotFoundException('Бронь не найдена');
     return b;
   }
 
-  /** Оплата из приложения. Пока только проживание: предоплата неоплаченной брони или остаток. */
+  /**
+   * Оплата из приложения: проживание (предоплата неоплаченной брони или остаток)
+   * или услуга (её сумма входит в бронь проживания и платится в счёт остатка).
+   */
   async createPayment(guest: GuestAccount, input: { purpose: string; targetId: string }, idempotencyKey: string) {
-    if (input.purpose !== 'booking') throw new UnprocessableEntityException({ message: 'Оплата услуг в приложении пока не подключена', code: 'not_available' });
+    if (input.purpose === 'service_booking') return this.payService(guest, input.targetId, idempotencyKey);
+    if (input.purpose !== 'booking') throw new UnprocessableEntityException({ message: 'Этот вид оплаты в приложении пока не подключён', code: 'not_available' });
     const b = await this.ownBooking(guest, input.targetId);
     const paid = await this.payments.paidMinor(this.db, b.id);
     const isPrepayment = b.status === 'pending_payment';
@@ -172,6 +181,30 @@ export class GuestAppService {
       bookingId: b.id,
       amountMinor: amount,
       purpose: isPrepayment ? 'prepayment' : 'balance',
+      idempotencyKey: `app:${guest.accountId}:${idempotencyKey}`,
+      returnUrl: `${this.config.apiPublicUrl}/guest/v1/payment-return`,
+    });
+    return this.payment(guest, r.paymentId);
+  }
+
+  private async payService(guest: GuestAccount, serviceBookingId: string, idempotencyKey: string) {
+    const sb = await this.db
+      .selectFrom('service_booking')
+      .select(['booking_id', 'amount_minor', 'status'])
+      .where('id', '=', serviceBookingId)
+      .where('property_id', '=', guest.propertyId)
+      .executeTakeFirst();
+    if (!sb?.booking_id) throw new NotFoundException('Бронь услуги не найдена');
+    const b = await this.ownBooking(guest, sb.booking_id);
+    if (sb.status === 'cancelled') throw new ConflictException({ message: 'Услуга отменена', code: 'cancelled' });
+    if (b.status === 'pending_payment') throw new ConflictException({ message: 'Сначала оплатите проживание', code: 'booking_unpaid' });
+    const paid = await this.payments.paidMinor(this.db, b.id);
+    const amount = Math.min(Number(sb.amount_minor), Math.max(0, b.total_minor - paid));
+    if (amount <= 0) throw new ConflictException({ message: 'Услуга уже оплачена', code: 'nothing_to_pay' });
+    const r = await this.payments.startBookingPayment({
+      bookingId: b.id,
+      amountMinor: amount,
+      purpose: 'balance',
       idempotencyKey: `app:${guest.accountId}:${idempotencyKey}`,
       returnUrl: `${this.config.apiPublicUrl}/guest/v1/payment-return`,
     });

@@ -30,6 +30,8 @@ import { PAYMENT_PROVIDER } from './payments/provider';
 import { SandboxProvider } from './payments/sandbox.provider';
 import { SberProvider } from './payments/sber.provider';
 import { PublicController } from './public/public.controller';
+import { ServicesController } from './services/services.controller';
+import { ServicesService } from './services/services.service';
 import { PublicService } from './public/public.service';
 
 @Module({})
@@ -44,7 +46,7 @@ export class AppModule {
     return {
       module: AppModule,
       imports: [configModule, DbModule],
-      controllers: [AuthController, UsersController, InventoryController, GuestsController, BookingsController, PaymentsController, PublicController, GuestAppController, ImportsController],
+      controllers: [AuthController, UsersController, InventoryController, GuestsController, BookingsController, PaymentsController, PublicController, GuestAppController, ImportsController, ServicesController],
       providers: [
         AuthService,
         UsersService,
@@ -59,6 +61,7 @@ export class AppModule {
         GuestAuthService,
         GuestAppService,
         CheckinService,
+        ServicesService,
         {
           provide: MAIL_SENDER,
           useFactory: () => (config.mail.mode === 'smtp' ? new SmtpMailSender(config.mail.smtpUrl!, config.mail.from) : config.mail.mode === 'log' ? new LogMailSender() : new DisabledMailSender()),

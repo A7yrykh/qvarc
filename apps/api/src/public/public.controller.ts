@@ -3,12 +3,16 @@ import { z } from 'zod';
 import { RateLimiter } from '../common/rate-limit';
 import { CONFIG } from '../common/tokens';
 import type { AppConfig } from '../config';
-import { parse } from '../common/validation';
+import { isoDate, parse, uuid } from '../common/validation';
+import { ServiceBookingBody } from '../services/services.schemas';
+import { ServicesService } from '../services/services.service';
 import { ClientIp, Public } from '../iam/auth.decorators';
 import { GuestAppService } from '../guest-app/guest-app.service';
 import { ManageToken, OffersQuery, PublicBookingBody } from './public.schemas';
 import { PublicService } from './public.service';
 
+
+const SiteServiceBody = ServiceBookingBody.omit({ bookingId: true }).extend({ idempotencyKey: z.string().min(16).max(100) });
 
 /** API модуля бронирования на сайте. Без входа; ограничение частоты по IP. */
 @Public()
@@ -21,6 +25,7 @@ export class PublicController {
   constructor(
     private readonly svc: PublicService,
     private readonly guestApp: GuestAppService,
+    private readonly catalog: ServicesService,
     @Inject(CONFIG) config: AppConfig,
   ) {
     const k = config.rateLimitFactor;
@@ -64,6 +69,41 @@ export class PublicController {
     this.bookingLimit.check(ip ?? '-');
     const { attemptKey } = parse(z.object({ attemptKey: z.string().min(16).max(100) }), b);
     return this.svc.pay(parse(ManageToken, token), attemptKey);
+  }
+
+  /** Доп. услуги и прокат, которые можно добавить к брони */
+  @Get('services')
+  async services(@Param('property') code: string) {
+    return this.catalog.catalog((await this.svc.property(code)).id);
+  }
+
+  @Get('services/:id/slots')
+  async slots(@Param('property') code: string, @Param('id') id: string, @Query('date') date: string, @ClientIp() ip: string | null) {
+    this.searchLimit.check(ip ?? '-');
+    return this.catalog.slots((await this.svc.property(code)).id, parse(uuid, id), parse(isoDate, date));
+  }
+
+  @Post('bookings/:token/services')
+  addService(@Param('token') token: string, @Body() b: unknown, @ClientIp() ip: string | null) {
+    this.bookingLimit.check(ip ?? '-');
+    const body = parse(SiteServiceBody, b);
+    const { idempotencyKey, ...input } = body;
+    return this.svc.addService(parse(ManageToken, token), input, idempotencyKey, ip);
+  }
+
+  @Post('bookings/:token/services/:id/cancel')
+  @HttpCode(200)
+  cancelService(@Param('token') token: string, @Param('id') id: string, @ClientIp() ip: string | null) {
+    this.manageLimit.check(ip ?? '-');
+    return this.svc.cancelService(parse(ManageToken, token), parse(uuid, id), ip);
+  }
+
+  @Post('bookings/:token/pay-services')
+  @HttpCode(200)
+  payServices(@Param('token') token: string, @Body() b: unknown, @ClientIp() ip: string | null) {
+    this.bookingLimit.check(ip ?? '-');
+    const { attemptKey } = parse(z.object({ attemptKey: z.string().min(16).max(100) }), b);
+    return this.svc.payServices(parse(ManageToken, token), attemptKey);
   }
 
   @Post('bookings/:token/cancel')

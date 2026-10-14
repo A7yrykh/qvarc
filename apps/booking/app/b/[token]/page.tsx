@@ -1,13 +1,15 @@
 'use client';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
+import Services, { type BookedService } from './Services';
 import { PROPERTY, api, cancellationText, depositText, diffDays, errorText, fmtDate, nightsWord, rub, type DepositRule, type Tier } from '@/lib/api';
 
 interface Manage {
   number: string; status: string; paymentState: string; propertyName: string; arrival: string; departure: string;
   checkInTime: string; checkOutTime: string; adults: number; childrenAges: number[]; guestName: string; accommodation: string;
   ratePlan: string | null; cancellationPolicy: Tier[] | null; depositRule: DepositRule | null; depositMinor: number; totalMinor: number; prepaymentDueMinor: number; paidMinor: number;
-  holdExpiresAt: string | null; canPay: boolean; cancellation: { penaltyMinor: number; refundMinor: number; depositMinor: number } | null;
+  holdExpiresAt: string | null; canPay: boolean; timezone: string;
+  services: BookedService[]; canAddServices: boolean; servicesDueMinor: number; stayFrom: string; stayTo: string; cancellation: { penaltyMinor: number; refundMinor: number; depositMinor: number } | null;
 }
 
 const STATUS: Record<string, { label: string; bg: string; fg: string }> = {
@@ -66,6 +68,7 @@ export default function ManagePage() {
   const st = STATUS[b.status] ?? { label: b.status, bg: '#eee', fg: 'var(--muted)' };
   const nights = diffDays(b.arrival, b.departure);
   const balance = b.totalMinor - b.paidMinor;
+  const servicesMinor = b.services.filter((s) => s.status !== 'cancelled').reduce((sum, s) => sum + s.amountMinor, 0);
 
   return (
     <div className="stack" style={{ maxWidth: 640 }}>
@@ -99,13 +102,20 @@ export default function ManagePage() {
         <div className="line"><span>Заезд</span><span>{fmtDate(b.arrival, { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}, с {b.checkInTime}</span></div>
         <div className="line"><span>Выезд</span><span>{fmtDate(b.departure, { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}, до {b.checkOutTime}</span></div>
         <div className="line"><span>Гости</span><span>{b.adults} взр.{b.childrenAges.length > 0 && `, ${b.childrenAges.length} дет.`}</span></div>
-        <div className="line"><span>Стоимость за {nightsWord(nights)}</span><b>{rub(b.totalMinor)}</b></div>
+        <div className="line"><span>Стоимость за {nightsWord(nights)}</span><b>{rub(b.totalMinor - servicesMinor)}</b></div>
+        {servicesMinor > 0 && <div className="line"><span>Услуги и прокат</span><b>{rub(servicesMinor)}</b></div>}
+        {servicesMinor > 0 && <div className="line"><span>Итого</span><b>{rub(b.totalMinor)}</b></div>}
         <div className="line"><span>Оплачено</span><span>{rub(b.paidMinor)}</span></div>
         {['confirmed', 'checked_in'].includes(b.status) && balance > 0 && <div className="line"><span>К оплате при заезде</span><b>{rub(balance)}</b></div>}
         {b.depositMinor > 0 && <div className="line"><span>На вашем депозите</span><b>{rub(b.depositMinor)}</b></div>}
         <div className="small muted">{cancellationText(b.cancellationPolicy)}</div>
         {depositText(b.depositRule) && <div className="small muted">{depositText(b.depositRule)}</div>}
       </div>
+
+      <Services<Manage>
+        token={token} timezone={b.timezone} arrival={b.arrival} departure={b.departure} stayFrom={b.stayFrom} stayTo={b.stayTo}
+        canAdd={b.canAddServices} booked={b.services} dueMinor={b.servicesDueMinor} onChange={setB}
+      />
 
       {b.cancellation && (
         <div className="card stack" style={{ gap: 8 }}>

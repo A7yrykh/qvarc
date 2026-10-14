@@ -1,5 +1,6 @@
 import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { createHash, randomBytes } from 'node:crypto';
+import { sql } from 'kysely';
 import { z } from 'zod';
 import { cancellationOutcome, cancellationPenaltyMinor, depositApplies, seasonOf, type CancellationTier, type DepositPolicy } from '../../../../packages/domain/src';
 import { setActor, type Database } from '../../../../packages/db/src';
@@ -9,6 +10,8 @@ import { AuditService } from '../common/audit.service';
 import { CONFIG, DB } from '../common/tokens';
 import type { AppConfig } from '../config';
 import { PaymentsService } from '../payments/payments.service';
+import type { ServiceBookingBody } from '../services/services.schemas';
+import { ServicesService } from '../services/services.service';
 import type { OffersQuery, PublicBookingBody } from './public.schemas';
 
 /** Версия текста согласия на обработку ПДн. Меняется вместе с текстом на сайте. */
@@ -34,6 +37,7 @@ export class PublicService {
     private readonly bookings: BookingsService,
     private readonly payments: PaymentsService,
     private readonly audit: AuditService,
+    private readonly services: ServicesService,
   ) {}
 
   async property(code: string) {
@@ -209,6 +213,7 @@ export class PublicService {
       status: b.status,
       paymentState: b.payment_state,
       propertyName: b.property_name,
+      timezone: b.timezone,
       arrival: b.arrival,
       departure: b.departure,
       checkInTime: b.check_in_time.slice(0, 5),
@@ -227,13 +232,94 @@ export class PublicService {
       canPay: b.status === 'pending_payment' && !!b.hold_expires_at && new Date(b.hold_expires_at) > new Date(),
       cancellation: cancellable ? cancellationOutcome(penalty!, paid, deposit) : null,
       depositMinor: kept ? Number(kept.balance_minor) : 0,
+      ...(await this.servicesInfo(b, paid)),
     };
+  }
+
+  /** Услуги и прокат в брони: что заказано, можно ли добавить и сколько оплатить онлайн */
+  private async servicesInfo(b: { id: string; status: string; total_minor: number; property_id?: string }, paid: number) {
+    const ref = await this.db
+      .selectFrom('booking as b')
+      .innerJoin('property as p', 'p.id', 'b.property_id')
+      .select([
+        'b.property_id',
+        sql<Date>`((b.arrival + p.check_in_time) AT TIME ZONE p.timezone)`.as('stay_from'),
+        sql<Date>`((b.departure + p.check_out_time) AT TIME ZONE p.timezone)`.as('stay_to'),
+      ])
+      .where('b.id', '=', b.id)
+      .executeTakeFirstOrThrow();
+    const list = await this.services.forBooking(ref.property_id, b.id);
+    const active = list.filter((x) => x.status !== 'cancelled');
+    const servicesMinor = active.reduce((sum, x) => sum + Number(x.amount_minor), 0);
+    const canAddServices = ['pending_confirmation', 'confirmed', 'checked_in'].includes(b.status);
+    return {
+      services: list.map((x) => ({
+        id: x.id,
+        name: x.service_name,
+        status: x.status,
+        startsAt: x.starts_at,
+        endsAt: x.ends_at,
+        quantity: x.quantity,
+        amountMinor: Number(x.amount_minor),
+        canCancel: ['requested', 'confirmed'].includes(x.status) && (!x.starts_at || new Date(x.starts_at) > new Date()),
+      })),
+      canAddServices,
+      // Время услуг — между заселением и выездом
+      stayFrom: ref.stay_from,
+      stayTo: ref.stay_to,
+      // Онлайн оплачиваются заказанные услуги, но не больше остатка по брони
+      servicesDueMinor: canAddServices ? Math.max(0, Math.min(servicesMinor, b.total_minor - paid)) : 0,
+    };
+  }
+
+  private async guestActor(token: string, ip: string | null) {
+    const ref = await this.byToken(token);
+    return { ref, actor: { type: 'guest' as const, id: null, propertyId: ref.property_id, ip } };
+  }
+
+  /** Гость добавляет услугу или прокат к своей брони по ссылке */
+  async addService(token: string, input: Omit<z.infer<typeof ServiceBookingBody>, 'bookingId'>, idempotencyKey: string, ip: string | null) {
+    const { ref, actor } = await this.guestActor(token, ip);
+    if (!['pending_confirmation', 'confirmed', 'checked_in'].includes(ref.status)) {
+      throw new ConflictException({ message: 'Услуги можно добавить после оплаты брони', code: 'booking_unpaid' });
+    }
+    await this.services.book(actor, { ...input, bookingId: ref.id }, 'booking_site', `web:${ref.id}:${idempotencyKey}`);
+    return this.manage(token);
+  }
+
+  async cancelService(token: string, serviceBookingId: string, ip: string | null) {
+    const { ref, actor } = await this.guestActor(token, ip);
+    await this.services.act(actor, serviceBookingId, 'cancel', { guestBookingIds: [ref.id] });
+    return this.manage(token);
+  }
+
+  /** Оплата заказанных услуг онлайн */
+  async payServices(token: string, attemptKey: string) {
+    const info = await this.manage(token);
+    if (info.servicesDueMinor <= 0) throw new ConflictException({ message: 'По услугам нечего оплачивать', code: 'nothing_to_pay' });
+    const ref = await this.byToken(token);
+    const pay = await this.payments.startBookingPayment({
+      bookingId: ref.id,
+      amountMinor: info.servicesDueMinor,
+      purpose: 'balance',
+      idempotencyKey: `web:${ref.id}:services:${attemptKey}`,
+      returnUrl: `${this.config.bookingSiteUrl}/b/${token}`,
+    });
+    return { confirmationUrl: pay.confirmationUrl };
   }
 
   /** Удержание при отмене: неоплаченная бронь отменяется без удержания. */
   private async penalty(b: { id: string; status: string; is_refundable: boolean | null; cancellation_policy: unknown; total_minor: number; arrival: string }, today: string, trx: Database = this.db) {
     if (b.status === 'pending_payment') return 0;
-    if (b.is_refundable === false) return b.total_minor;
+    // Услуги и прокат в удержание не входят: при отмене брони они отменяются и возвращаются полностью
+    const extras = await trx
+      .selectFrom('booking_item')
+      .select(sql<number>`coalesce(sum(amount_minor), 0)::bigint`.as('x'))
+      .where('booking_id', '=', b.id)
+      .where('kind', 'in', ['service', 'rental'])
+      .executeTakeFirstOrThrow();
+    const stayTotal = Math.max(0, b.total_minor - Number(extras.x));
+    if (b.is_refundable === false) return stayTotal;
     const nights = await trx
       .selectFrom('booking_night_price as n')
       .innerJoin('booking_stay as s', 's.id', 'n.booking_stay_id')
@@ -241,7 +327,7 @@ export class PublicService {
       .where('s.booking_id', '=', b.id)
       .orderBy('n.night')
       .execute();
-    return cancellationPenaltyMinor(b.cancellation_policy as CancellationTier[], b.total_minor, b.arrival, today, nights.map((n) => Number(n.amount_minor)));
+    return cancellationPenaltyMinor(b.cancellation_policy as CancellationTier[], stayTotal, b.arrival, today, nights.map((n) => Number(n.amount_minor)));
   }
 
   /** Повторная попытка оплаты, пока номер удерживается. */
