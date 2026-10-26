@@ -11,7 +11,7 @@
   "reviewDetail": {
     "contactFirstName": "Alexander",
     "contactLastName": "Syrykh",
-    "contactEmail": "alexander@avsyrykh.es",
+    "contactEmail": "a7yrykh@yahoo.com",
     "contactPhone": "+34 676 857 631",
     "demoAccountRequired": false,
     "notes": "Despeja scans the photo library ON DEVICE (PhotoKit) to find exact duplicates (perceptual hash), similar burst photos, screenshots and large videos, and lets the user delete them. Deletion always goes through the iOS system confirmation dialog and items go to Recently Deleted (recoverable for 30 days). No network requests, no accounts, no analytics, no ads; the app collects no data.\n\nHow to test: grant Photos access, the scan starts automatically. Open any category, review the preselected items (the best copy in each group is kept and marked with a star) and tap Eliminar.\n\nMonetization: scanning and reviewing are free, and the free tier can delete up to 20 files per day. Despeja Pro (auto-renewable subscriptions in group 'Despeja Pro': es.avsyrykh.despeja.pro.weekly 4.99 EUR/week, es.avsyrykh.despeja.pro.yearly 29.99 EUR/year with a 3-day free trial) removes the daily limit. The paywall opens from the home screen card 'Despeja Pro', from Settings (gear icon) > Pasar a Pro, or when the daily limit is reached. It shows price, period, trial terms, auto-renewal terms, Restore purchases, Privacy policy and Terms of Use (Apple standard EULA)."
