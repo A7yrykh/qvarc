@@ -1,0 +1,80 @@
+{
+  "bundle": "es.avsyrykh.despeja",
+  "primaryLocale": "es-ES",
+  "categories": {"primary": "UTILITIES", "secondary": "PHOTO_AND_VIDEO"},
+  "copyright": "2026 AVSyrykh SL",
+  "privacyPolicyUrl": "https://avsyrykh.es/despeja/privacidad",
+  "supportUrl": "https://avsyrykh.es/contacto",
+  "price": "FREE",
+  "ageRating": "4+ (all answers NONE / false, including socialMedia, gambling, lootBoxes, unrestrictedWebAccess, userGeneratedContent, messagingAndChat, advertising)",
+  "contentRightsDeclaration": "DOES_NOT_USE_THIRD_PARTY_CONTENT",
+  "reviewDetail": {
+    "contactFirstName": "Alexander",
+    "contactLastName": "Syrykh",
+    "contactEmail": "alexander@avsyrykh.es",
+    "contactPhone": "+34 676 857 631",
+    "demoAccountRequired": false,
+    "notes": "Despeja scans the photo library ON DEVICE (PhotoKit) to find exact duplicates (perceptual hash), similar burst photos, screenshots and large videos, and lets the user delete them. Deletion always goes through the iOS system confirmation dialog and items go to Recently Deleted (recoverable for 30 days). No network requests, no accounts, no analytics, no ads; the app collects no data.\n\nHow to test: grant Photos access, the scan starts automatically. Open any category, review the preselected items (the best copy in each group is kept and marked with a star) and tap Eliminar.\n\nMonetization: scanning and reviewing are free, and the free tier can delete up to 20 files per day. Despeja Pro (auto-renewable subscriptions in group 'Despeja Pro': es.avsyrykh.despeja.pro.weekly 4.99 EUR/week, es.avsyrykh.despeja.pro.yearly 29.99 EUR/year with a 3-day free trial) removes the daily limit. The paywall opens from the home screen card 'Despeja Pro', from Settings (gear icon) > Pasar a Pro, or when the daily limit is reached. It shows price, period, trial terms, auto-renewal terms, Restore purchases, Privacy policy and Terms of Use (Apple standard EULA)."
+  },
+  "localizations": {
+    "es-ES": {
+      "name": "Despeja: limpiar fotos",
+      "subtitle": "Borra duplicados y vídeos",
+      "keywords": "limpiar,limpiador,memoria,espacio,almacenamiento,duplicados,fotos,borrar,cleaner,capturas,galería",
+      "promotionalText": "Encuentra duplicados, ráfagas, capturas y vídeos pesados en segundos. Todo se analiza en tu iPhone: ninguna foto sale del dispositivo.",
+      "description": "¿Te quedas sin espacio en el iPhone? Despeja revisa tu galería y te muestra lo que sobra para que lo borres en unos toques.\n\nQUÉ ENCUENTRA\n• Duplicados: copias exactas de la misma foto, también las reenviadas por WhatsApp o guardadas dos veces.\n• Fotos similares: ráfagas y series casi iguales. Dejamos la mejor y te proponemos borrar el resto.\n• Capturas de pantalla: las más antiguas primero.\n• Vídeos grandes: ordenados por tamaño, para recuperar gigas de golpe.\n\nSEGURO Y PRIVADO\n• Todo el análisis se hace en el propio iPhone. Ninguna foto sale del dispositivo.\n• Sin cuentas, sin anuncios, sin recogida de datos.\n• Nada se borra sin tu confirmación. Lo eliminado pasa 30 días en «Eliminado» de Fotos, por si te arrepientes.\n• La mejor copia de cada grupo se marca con una estrella y no se selecciona.\n\nGRATIS Y PRO\nAnalizar la galería es gratis, y cada día puedes borrar 20 archivos sin pagar. Despeja Pro elimina el límite diario.\n\nDespeja Pro es una suscripción con renovación automática: 4,99 € a la semana o 29,99 € al año (con 3 días de prueba gratis en el plan anual). El pago se carga a tu Apple ID al confirmar la compra. La suscripción se renueva salvo que la canceles al menos 24 horas antes del final del periodo, en Ajustes > Apple ID > Suscripciones.\n\nPrivacidad: https://avsyrykh.es/despeja/privacidad\nCondiciones de uso (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
+    },
+    "en-GB": {
+      "name": "Despeja: Photo Cleaner",
+      "subtitle": "Delete duplicates & big videos",
+      "keywords": "cleaner,clean,storage,space,duplicate,photos,delete,memory,similar,screenshots,videos,free up",
+      "promotionalText": "Find duplicates, bursts, screenshots and heavy videos in seconds. Everything is analysed on your iPhone: no photo ever leaves the device.",
+      "description": "Running out of space on your iPhone? Despeja checks your photo library and shows you what you don't need, so you can delete it in a few taps.\n\nWHAT IT FINDS\n• Duplicates: exact copies of the same photo, including ones forwarded from messengers or saved twice.\n• Similar photos: bursts and near-identical series. We keep the best one and suggest deleting the rest.\n• Screenshots: oldest first.\n• Large videos: sorted by size, to win back gigabytes at once.\n\nSAFE AND PRIVATE\n• All analysis happens on your iPhone. No photo ever leaves the device.\n• No accounts, no ads, no data collection.\n• Nothing is deleted without your confirmation. Deleted items stay 30 days in Recently Deleted, just in case.\n• The best copy in each group is starred and never preselected.\n\nFREE AND PRO\nScanning is free, and you can delete 20 files a day without paying. Despeja Pro removes the daily limit.\n\nDespeja Pro is an auto-renewable subscription: €4.99 per week or €29.99 per year (with a 3-day free trial on the yearly plan). Payment is charged to your Apple ID at confirmation of purchase. The subscription renews unless cancelled at least 24 hours before the end of the period in Settings > Apple ID > Subscriptions.\n\nPrivacy: https://avsyrykh.es/despeja/privacidad\nTerms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
+    },
+    "ru": {
+      "name": "Despeja: очистка фото",
+      "subtitle": "Удалить дубликаты и видео",
+      "keywords": "очистка,памяти,место,хранилище,дубликаты,фото,удалить,cleaner,скриншоты,галерея,видео,похожие",
+      "promotionalText": "Найдите дубликаты, серии, скриншоты и тяжёлые видео за секунды. Всё анализируется на iPhone: ни одно фото не покидает устройство.",
+      "description": "Заканчивается место на iPhone? Despeja проверит галерею и покажет лишнее, чтобы вы удалили его в пару касаний.\n\nЧТО НАХОДИТ\n• Дубликаты: точные копии одного фото, в том числе пересланные из мессенджеров или сохранённые дважды.\n• Похожие фото: серии и почти одинаковые кадры. Лучший оставляем, остальные предлагаем удалить.\n• Снимки экрана: сначала самые старые.\n• Большие видео: по размеру, чтобы сразу освободить гигабайты.\n\nБЕЗОПАСНО И ПРИВАТНО\n• Весь анализ идёт на iPhone. Ни одно фото не покидает устройство.\n• Без аккаунтов, рекламы и сбора данных.\n• Ничего не удаляется без вашего подтверждения. Удалённое 30 дней хранится в «Недавно удалённых».\n• Лучшая копия в каждой группе отмечена звёздочкой и не выделяется.\n\nБЕСПЛАТНО И PRO\nАнализ галереи бесплатный, и каждый день можно бесплатно удалить 20 файлов. Despeja Pro снимает дневной лимит.\n\nDespeja Pro — автопродлеваемая подписка: 4,99 € в неделю или 29,99 € в год (на годовом тарифе 3 дня бесплатно). Оплата списывается с Apple ID при подтверждении покупки. Подписка продлевается, если не отменить её минимум за 24 часа до конца периода: Настройки > Apple ID > Подписки.\n\nКонфиденциальность: https://avsyrykh.es/despeja/privacidad\nУсловия (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
+    },
+    "uk": {
+      "name": "Despeja: очищення фото",
+      "subtitle": "Видалити дублікати й відео",
+      "keywords": "очищення,пам'ять,місце,сховище,дублікати,фото,видалити,cleaner,знімки,галерея,відео,схожі",
+      "promotionalText": "Знайдіть дублікати, серії, знімки екрана й важкі відео за секунди. Усе аналізується на iPhone: жодне фото не залишає пристрій.",
+      "description": "Закінчується місце на iPhone? Despeja перевірить галерею й покаже зайве, щоб ви видалили його кількома дотиками.\n\nЩО ЗНАХОДИТЬ\n• Дублікати: точні копії одного фото, зокрема переслані з месенджерів або збережені двічі.\n• Схожі фото: серії й майже однакові кадри. Найкращий залишаємо, решту пропонуємо видалити.\n• Знімки екрана: спочатку найстаріші.\n• Великі відео: за розміром, щоб одразу звільнити гігабайти.\n\nБЕЗПЕЧНО Й ПРИВАТНО\n• Увесь аналіз відбувається на iPhone. Жодне фото не залишає пристрій.\n• Без акаунтів, реклами й збору даних.\n• Нічого не видаляється без вашого підтвердження. Видалене 30 днів зберігається в «Нещодавно видалених».\n• Найкраща копія в кожній групі позначена зірочкою й не виділяється.\n\nБЕЗКОШТОВНО І PRO\nАналіз галереї безкоштовний, і щодня можна безкоштовно видалити 20 файлів. Despeja Pro знімає денний ліміт.\n\nDespeja Pro — підписка з автопоновленням: 4,99 € на тиждень або 29,99 € на рік (на річному тарифі 3 дні безкоштовно). Оплата списується з Apple ID під час підтвердження покупки. Підписка поновлюється, якщо не скасувати її щонайменше за 24 години до кінця періоду: Параметри > Apple ID > Підписки.\n\nКонфіденційність: https://avsyrykh.es/despeja/privacidad\nУмови (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
+    }
+  },
+  "subscriptionGroup": {
+    "referenceName": "Despeja Pro",
+    "localizations": {"es-ES": "Despeja Pro", "en-GB": "Despeja Pro", "ru": "Despeja Pro", "uk": "Despeja Pro"},
+    "subscriptions": [
+      {
+        "productId": "es.avsyrykh.despeja.pro.yearly", "referenceName": "Despeja Pro anual",
+        "period": "ONE_YEAR", "groupLevel": 1, "priceEUR": "29.99", "baseTerritory": "ESP",
+        "introOffer": {"mode": "FREE_TRIAL", "duration": "THREE_DAYS", "allTerritories": true},
+        "familySharable": false,
+        "localizations": {
+          "es-ES": {"name": "Despeja Pro anual", "description": "Borra sin límite diario. Renovación anual."},
+          "en-GB": {"name": "Despeja Pro yearly", "description": "Delete with no daily limit. Renews yearly."},
+          "ru": {"name": "Despeja Pro на год", "description": "Удаление без дневного лимита. Продление раз в год."},
+          "uk": {"name": "Despeja Pro на рік", "description": "Видалення без денного ліміту. Поновлення щороку."}
+        },
+        "reviewNote": "Removes the free tier's daily limit of 20 deletions. Paywall: home card 'Despeja Pro' or Settings > Pasar a Pro."
+      },
+      {
+        "productId": "es.avsyrykh.despeja.pro.weekly", "referenceName": "Despeja Pro semanal",
+        "period": "ONE_WEEK", "groupLevel": 2, "priceEUR": "4.99", "baseTerritory": "ESP",
+        "familySharable": false,
+        "localizations": {
+          "es-ES": {"name": "Despeja Pro semanal", "description": "Borra sin límite diario. Renovación semanal."},
+          "en-GB": {"name": "Despeja Pro weekly", "description": "Delete with no daily limit. Renews weekly."},
+          "ru": {"name": "Despeja Pro на неделю", "description": "Удаление без дневного лимита. Продление раз в неделю."},
+          "uk": {"name": "Despeja Pro на тиждень", "description": "Видалення без денного ліміту. Поновлення щотижня."}
+        },
+        "reviewNote": "Removes the free tier's daily limit of 20 deletions. Paywall: home card 'Despeja Pro' or Settings > Pasar a Pro."
+      }
+    ]
+  }
+}
