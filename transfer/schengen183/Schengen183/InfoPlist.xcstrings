@@ -1,0 +1,93 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "NSLocationWhenInUseUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your location is used only to detect the country you are in and record your days there. Only the country is saved, on this iPhone."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La ubicación se usa solo para detectar el país en el que estás y registrar tus días allí. Solo se guarda el país, en este iPhone."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Геопозиция используется только чтобы определить страну, в которой вы находитесь, и записать дни. Сохраняется только страна, на этом iPhone."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Геопозиція використовується лише щоб визначити країну, де ви перебуваєте, і записати дні. Зберігається лише країна, на цьому iPhone."
+          }
+        }
+      }
+    },
+    "NSLocationAlwaysAndWhenInUseUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "With automatic tracking on, the app notes which country you are in each day, even in the background, to count your Schengen and tax-residency days. Only the country is saved, on this iPhone."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Con el registro automático activado, la app anota cada día en qué país estás, también en segundo plano, para contar tus días Schengen y de residencia fiscal. Solo se guarda el país, en este iPhone."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "При включённом автоучёте приложение каждый день отмечает страну, где вы находитесь, в том числе в фоне, чтобы считать дни Шенгена и налогового резидентства. Сохраняется только страна, на этом iPhone."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "З увімкненим автообліком застосунок щодня відмічає країну, де ви перебуваєте, зокрема у фоні, щоб рахувати дні Шенгену і податкового резидентства. Зберігається лише країна, на цьому iPhone."
+          }
+        }
+      }
+    },
+    "CFBundleDisplayName": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90/180"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90/180"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90/180"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90/180"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
