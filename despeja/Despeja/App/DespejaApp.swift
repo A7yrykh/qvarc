@@ -22,7 +22,7 @@ extension Color {
 enum AppInfo {
     static let privacyURL = URL(string: "https://avsyrykh.es/despeja/privacidad")!
     static let termsURL = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
-    static let supportURL = URL(string: "https://avsyrykh.es/contacto")!
+    static let supportURL = URL(string: "https://avsyrykh.es/despeja/")!
 
     /// Режим для снимков экрана: `-demoData` подставляет примерную медиатеку,
     /// `-demoScreen paywall` сразу открывает экран Pro.
