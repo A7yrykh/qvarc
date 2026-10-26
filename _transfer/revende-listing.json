@@ -1,0 +1,120 @@
+{
+  "bundle": "es.avsyrykh.revende",
+  "primaryLocale": "es-ES",
+  "categories": {
+    "primary": "SHOPPING",
+    "secondary": "PRODUCTIVITY"
+  },
+  "copyright": "2026 AVSyrykh SL",
+  "privacyPolicyUrl": "https://avsyrykh.es/revende/privacidad",
+  "supportUrl": "https://avsyrykh.es/revende/",
+  "marketingUrl": "https://avsyrykh.es/revende/",
+  "price": "FREE",
+  "ageRating": "4+ (all answers NONE / false, including socialMedia, gambling, lootBoxes, unrestrictedWebAccess, userGeneratedContent, messagingAndChat, advertising)",
+  "contentRightsDeclaration": "DOES_NOT_USE_THIRD_PARTY_CONTENT",
+  "reviewDetail": {
+    "contactFirstName": "Alexander",
+    "contactLastName": "Syrykh",
+    "contactEmail": "a7yrykh@yahoo.com",
+    "contactPhone": "SAME_AS_OTHER_APPS",
+    "demoAccountRequired": false,
+    "notes": "Revende works fully offline, without accounts. To test:\n1. Inventario › + : add photos (camera or library), name, brand, purchase price, listing price, toggle Vinted.\n2. Tap a photo › \"Estudio de fotos\" removes the background on-device (Vision; needs a real device, not the simulator).\n3. \"Crear anuncio con IA\" generates title/description with Apple Intelligence on-device (iOS 26, Apple Intelligence devices); on other devices a template is used.\n4. Calculadora and Resumen (profit, DAC7 thresholds) need no data.\nRevende Pro (auto-renewable subscription) unlocks unlimited items (free: 30), all studio backgrounds and CSV export. Terms: https://avsyrykh.es/revende/condiciones\nThe app does not connect to or automate Vinted/Wallapop; it only prepares text and photos that the user copies manually.\nPaywall: Ajustes > 'Hazte Pro', a premium background in Estudio de fotos, or when adding the 31st item. Subscriptions: es.avsyrykh.revende.pro.monthly 4.99 EUR/month and es.avsyrykh.revende.pro.yearly 39.99 EUR/year (group 'Revende Pro'). No data is collected; no network requests except StoreKit."
+  },
+  "localizations": {
+    "es-ES": {
+      "name": "Revende: vender segunda mano",
+      "subtitle": "Fotos IA, anuncios y beneficio",
+      "keywords": "ropa,usada,reventa,calculadora,margen,precio,ganancia,armario,fondo,foto,dac7,hacienda,ventas",
+      "promotionalText": "Haz fotos de estudio, crea el anuncio con IA en segundos y descubre cuánto ganas de verdad con cada venta. Todo en tu iPhone, sin cuentas.",
+      "description": "Revende es la app para quien vende ropa y cosas de segunda mano: fotos de estudio, anuncios con IA y el beneficio real de cada venta, en un solo sitio.\n\nESTUDIO DE FOTOS\n• Quita el fondo con un toque y pon tu artículo sobre fondo blanco, gris, beige o de estudio.\n• Sombra suave, mejora de luz y formatos 1:1, 4:5 y 3:4.\n• Guarda las fotos en tu galería, listas para subir.\n\nANUNCIOS CON IA\n• Título, descripción y hashtags en segundos, con los límites de caracteres de cada plataforma.\n• El estado del artículo con las palabras de cada plataforma: «Muy bueno», «Como nuevo»…\n• La IA de Apple funciona en tu iPhone: tus datos no salen del dispositivo.\n• Copia el texto y abre la app de la plataforma con un toque.\n\nCUÁNTO GANAS DE VERDAD\n• Beneficio neto, margen y ROI de cada artículo: compra, arreglos, envío, embalaje, destacados y comisiones.\n• Precio mínimo para no perder dinero y precio para el beneficio que quieres.\n• ¿Te hacen una oferta? Mira al momento cuánto ganas con un 10 % o un 20 % menos.\n• Lo que pagará el comprador con la protección incluida.\n\nINVENTARIO Y VENTAS\n• Todo lo que tienes a la venta, con fotos, estado y precio.\n• Avisos de artículos que llevan más de 30 días sin venderse.\n• Resumen del mes y del año: ventas, facturación, margen medio y días hasta vender.\n\nLÍMITES DAC7 DE HACIENDA\nLas plataformas informan a Hacienda de quien vende 30 artículos o más de 2.000 € al año. Revende te muestra en cada plataforma cuánto te falta para llegar.\n\nGRATIS Y PRO\nGratis: hasta 30 artículos, fondo blanco, anuncios con IA, calculadora y DAC7.\nRevende Pro: artículos ilimitados, todos los fondos y exportación de ventas a CSV para tu gestor. Suscripción mensual o anual con renovación automática; cancela cuando quieras en Ajustes.\n\nÚtil para vender en Vinted, Wallapop, eBay o Milanuncios. Revende no está afiliada a ninguna de estas plataformas ni publica por ti. Los cálculos son orientativos y no son asesoramiento fiscal.\n\nCondiciones: https://avsyrykh.es/revende/condiciones\nPrivacidad: https://avsyrykh.es/revende/privacidad\n\nRevende Pro es una suscripción con renovación automática: 4,99 € al mes o 39,99 € al año. El pago se carga a tu Apple ID al confirmar la compra. La suscripción se renueva salvo que la canceles al menos 24 horas antes del final del periodo, en Ajustes > Apple ID > Suscripciones.\nCondiciones de uso (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
+    },
+    "en-GB": {
+      "name": "Revende: Resell Second-Hand",
+      "subtitle": "AI photos, listings & profit",
+      "keywords": "reseller,closet,clothes,used,profit,margin,calculator,fees,background,remover,listing,thrift",
+      "promotionalText": "Studio-quality photos, AI listings in seconds and the real profit of every sale. All on your iPhone, no account needed.",
+      "description": "Revende is the app for people who sell clothes and second-hand items: studio photos, AI listings and the real profit of every sale in one place.\n\nPHOTO STUDIO\n• Remove the background in one tap and place your item on white, grey, beige or studio backgrounds.\n• Soft shadow, light enhancement and 1:1, 4:5 and 3:4 formats.\n• Save the photos to your library, ready to upload.\n\nAI LISTINGS\n• Title, description and hashtags in seconds, within each marketplace's character limits.\n• Item condition worded the way each marketplace expects.\n• Apple's on-device AI: your data never leaves your iPhone.\n• Copy the text and open the marketplace app in one tap.\n\nYOUR REAL PROFIT\n• Net profit, margin and ROI per item: purchase, repairs, shipping, packaging, boosts and fees.\n• Break-even price and the price for the profit you want.\n• Got an offer? See instantly what you keep at 10% or 20% off.\n\nINVENTORY AND SALES\n• Everything you have for sale, with photos, condition and price.\n• Alerts for items unsold for more than 30 days.\n• Monthly and yearly summary: sales, revenue, average margin and days to sell.\n\nDAC7 THRESHOLDS\nIn the EU, marketplaces report sellers with 30 or more sales or over €2,000 a year to the tax authority. Revende shows how close you are on each marketplace.\n\nFREE AND PRO\nFree: up to 30 items, white background, AI listings, calculator and DAC7.\nRevende Pro: unlimited items, all backgrounds and CSV export of your sales. Monthly or yearly auto-renewable subscription; cancel anytime in Settings.\n\nWorks for selling on Vinted, Wallapop, eBay and more. Revende is not affiliated with any of these marketplaces and does not post for you. Calculations are guidance, not tax advice.\n\nTerms: https://avsyrykh.es/revende/condiciones\nPrivacy: https://avsyrykh.es/revende/privacidad\n\nRevende Pro is an auto-renewable subscription: €4.99 per month or €39.99 per year. Payment is charged to your Apple ID at confirmation of purchase. The subscription renews unless cancelled at least 24 hours before the end of the period in Settings > Apple ID > Subscriptions.\nTerms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
+    },
+    "ru": {
+      "name": "Revende: продажа б/у вещей",
+      "subtitle": "ИИ-фото, объявления, прибыль",
+      "keywords": "ресейл,одежда,маржа,калькулятор,фон,вещи,продать",
+      "promotionalText": "Студийные фото, объявление с ИИ за секунды и реальная прибыль с каждой продажи. Всё на вашем iPhone, без регистрации.",
+      "description": "Revende — приложение для тех, кто продаёт одежду и вещи б/у: студийные фото, объявления с ИИ и реальная прибыль с каждой продажи в одном месте.\n\nФОТОСТУДИЯ\n• Убирает фон одним касанием и ставит вещь на белый, серый, бежевый или студийный фон.\n• Мягкая тень, улучшение света, форматы 1:1, 4:5 и 3:4.\n• Сохраняйте фото в галерею — сразу для загрузки.\n\nОБЪЯВЛЕНИЯ С ИИ\n• Заголовок, описание и хэштеги за секунды, в пределах лимитов каждой площадки.\n• Состояние вещи теми словами, которые приняты на площадке.\n• ИИ Apple работает на iPhone: данные не покидают устройство.\n• Скопируйте текст и откройте приложение площадки одним касанием.\n\nСКОЛЬКО ВЫ ЗАРАБАТЫВАЕТЕ НА САМОМ ДЕЛЕ\n• Чистая прибыль, маржа и ROI по каждой вещи: закупка, ремонт, доставка, упаковка, продвижение, комиссии.\n• Минимальная цена без убытка и цена под нужную прибыль.\n• Предложили скидку? Сразу видно, сколько останется при −10 % или −20 %.\n\nСКЛАД И ПРОДАЖИ\n• Всё, что выставлено, с фото, состоянием и ценой.\n• Напоминания о вещах, которые не продаются больше 30 дней.\n• Итоги месяца и года: продажи, выручка, средняя маржа, срок продажи.\n\nПОРОГИ DAC7\nВ ЕС площадки сообщают в налоговую о продавцах с 30 продажами или более 2 000 € в год. Revende показывает, сколько осталось до порога на каждой площадке.\n\nБЕСПЛАТНО И PRO\nБесплатно: до 30 вещей, белый фон, объявления с ИИ, калькулятор и DAC7.\nRevende Pro: безлимит вещей, все фоны и экспорт продаж в CSV. Подписка на месяц или год с автопродлением; отменить можно в Настройках.\n\nПодходит для продаж на Vinted, Wallapop, eBay и других площадках. Revende не связана с ними и не публикует объявления за вас. Расчёты носят справочный характер и не являются налоговой консультацией.\n\nУсловия: https://avsyrykh.es/revende/condiciones\nКонфиденциальность: https://avsyrykh.es/revende/privacidad\n\nRevende Pro — автопродлеваемая подписка: 4,99 € в месяц или 39,99 € в год. Оплата списывается с Apple ID при подтверждении покупки. Подписка продлевается, если не отменить её минимум за 24 часа до конца периода: Настройки > Apple ID > Подписки.\nУсловия (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
+    },
+    "uk": {
+      "name": "Revende: продаж вживаних речей",
+      "subtitle": "ШІ-фото, оголошення, прибуток",
+      "keywords": "ресейл,одяг,маржа,калькулятор,фон,речі,продати",
+      "promotionalText": "Студійні фото, оголошення зі ШІ за секунди та реальний прибуток з кожного продажу. Усе на вашому iPhone, без реєстрації.",
+      "description": "Revende — застосунок для тих, хто продає одяг і вживані речі: студійні фото, оголошення зі ШІ та реальний прибуток з кожного продажу в одному місці.\n\nФОТОСТУДІЯ\n• Прибирає фон одним дотиком і ставить річ на білий, сірий, бежевий або студійний фон.\n• М’яка тінь, покращення світла, формати 1:1, 4:5 і 3:4.\n• Зберігайте фото в галерею — одразу для завантаження.\n\nОГОЛОШЕННЯ ЗІ ШІ\n• Заголовок, опис і хештеги за секунди, в межах лімітів кожного майданчика.\n• Стан речі словами, прийнятими на майданчику.\n• ШІ Apple працює на iPhone: дані не залишають пристрій.\n• Скопіюйте текст і відкрийте застосунок майданчика одним дотиком.\n\nСКІЛЬКИ ВИ ЗАРОБЛЯЄТЕ НАСПРАВДІ\n• Чистий прибуток, маржа та ROI для кожної речі: закупівля, ремонт, доставка, пакування, просування, комісії.\n• Мінімальна ціна без збитку та ціна під потрібний прибуток.\n• Запропонували знижку? Одразу видно, скільки залишиться при −10 % або −20 %.\n\nСКЛАД І ПРОДАЖІ\n• Усе, що виставлено, з фото, станом і ціною.\n• Нагадування про речі, що не продаються понад 30 днів.\n• Підсумки місяця й року: продажі, виручка, середня маржа, строк продажу.\n\nПОРОГИ DAC7\nУ ЄС майданчики повідомляють податкову про продавців із 30 продажами або понад 2 000 € на рік. Revende показує, скільки залишилося до порогу на кожному майданчику.\n\nБЕЗКОШТОВНО І PRO\nБезкоштовно: до 30 речей, білий фон, оголошення зі ШІ, калькулятор і DAC7.\nRevende Pro: необмежено речей, усі фони та експорт продажів у CSV. Підписка на місяць або рік з автопродовженням; скасувати можна в Параметрах.\n\nПідходить для продажів на Vinted, Wallapop, eBay та інших майданчиках. Revende не пов’язана з ними й не публікує оголошення за вас. Розрахунки довідкові й не є податковою консультацією.\n\nУмови: https://avsyrykh.es/revende/condiciones\nКонфіденційність: https://avsyrykh.es/revende/privacidad\n\nRevende Pro — підписка з автопоновленням: 4,99 € на місяць або 39,99 € на рік. Оплата списується з Apple ID під час підтвердження покупки. Підписка поновлюється, якщо не скасувати її щонайменше за 24 години до кінця періоду: Параметри > Apple ID > Підписки.\nУмови (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
+    }
+  },
+  "subscriptionGroup": {
+    "referenceName": "Revende Pro",
+    "localizations": {
+      "es-ES": "Revende Pro",
+      "en-GB": "Revende Pro",
+      "ru": "Revende Pro",
+      "uk": "Revende Pro"
+    },
+    "subscriptions": [
+      {
+        "productId": "es.avsyrykh.revende.pro.yearly",
+        "referenceName": "Revende Pro anual",
+        "period": "ONE_YEAR",
+        "groupLevel": 1,
+        "priceEUR": "39.99",
+        "baseTerritory": "ESP",
+        "familySharable": false,
+        "localizations": {
+          "es-ES": {
+            "name": "Revende Pro anual",
+            "description": "Un año de Pro: ilimitado y CSV"
+          },
+          "en-GB": {
+            "name": "Revende Pro Yearly",
+            "description": "One year of Pro: unlimited and CSV"
+          },
+          "ru": {
+            "name": "Revende Pro на год",
+            "description": "Год Pro: безлимит и CSV"
+          },
+          "uk": {
+            "name": "Revende Pro на рік",
+            "description": "Рік Pro: безліміт і CSV"
+          }
+        },
+        "reviewNote": "Unlocks unlimited items (free tier: 30), all photo studio backgrounds and CSV export. Paywall: Ajustes > 'Hazte Pro', a premium background in Estudio de fotos, or when adding the 31st item."
+      },
+      {
+        "productId": "es.avsyrykh.revende.pro.monthly",
+        "referenceName": "Revende Pro mensual",
+        "period": "ONE_MONTH",
+        "groupLevel": 2,
+        "priceEUR": "4.99",
+        "baseTerritory": "ESP",
+        "familySharable": false,
+        "localizations": {
+          "es-ES": {
+            "name": "Revende Pro mensual",
+            "description": "Artículos ilimitados, fondos y CSV"
+          },
+          "en-GB": {
+            "name": "Revende Pro Monthly",
+            "description": "Unlimited items, backgrounds and CSV"
+          },
+          "ru": {
+            "name": "Revende Pro на месяц",
+            "description": "Безлимит вещей, все фоны и CSV"
+          },
+          "uk": {
+            "name": "Revende Pro на місяць",
+            "description": "Безліміт речей, усі фони та CSV"
+          }
+        },
+        "reviewNote": "Unlocks unlimited items (free tier: 30), all photo studio backgrounds and CSV export. Paywall: Ajustes > 'Hazte Pro', a premium background in Estudio de fotos, or when adding the 31st item."
+      }
+    ]
+  }
+}
