@@ -4,6 +4,7 @@ struct RootView: View {
     @EnvironmentObject private var library: LibraryStore
     @Environment(\.scenePhase) private var scenePhase
     @State private var demoPaywall = AppInfo.demoScreen == "paywall"
+    @State private var demoSettings = AppInfo.demoScreen == "settings"
 
     var body: some View {
         Group {
@@ -20,6 +21,7 @@ struct RootView: View {
             }
         }
         .sheet(isPresented: $demoPaywall) { PaywallView() }
+        .sheet(isPresented: $demoSettings) { SettingsView() }
     }
 }
 

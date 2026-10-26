@@ -5,9 +5,10 @@ struct HomeView: View {
     @EnvironmentObject private var purchases: PurchaseManager
     @State private var showPaywall = false
     @State private var showSettings = false
+    @State private var path: [CleanCategory] = AppInfo.demoScreen.flatMap(CleanCategory.init(rawValue:)).map { [$0] } ?? []
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             ScrollView {
                 VStack(spacing: 16) {
                     storageCard
