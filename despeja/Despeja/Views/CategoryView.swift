@@ -41,9 +41,9 @@ struct CategoryView: View {
                 DeleteBar(selection: selectedItems) { selected.removeAll() }
             }
         }
-        .onAppear {
+        .task(id: library.hasScanned) {
             // В группах сразу отмечаем лишние копии: лучший снимок остаётся.
-            if !didPreselect && category.isGrouped {
+            if !didPreselect && category.isGrouped && !selectableIDs.isEmpty {
                 selected = selectableIDs
                 didPreselect = true
             }
