@@ -827,13 +827,13 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Despeja анализирует фото прямо на iPhone. Без аккаунтов, серверов и рекламы, мы не собираем никаких данных."
+            "value": "Despeja анализирует фото прямо на iPhone. Без аккаунтов, серверов и рекламы — мы не собираем никаких данных."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Despeja аналізує фото просто на iPhone. Без акаунтів, серверів і реклами, ми не збираємо жодних даних."
+            "value": "Despeja аналізує фото просто на iPhone. Без акаунтів, серверів і реклами — ми не збираємо жодних даних."
           }
         }
       }
@@ -1533,13 +1533,13 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Снять все"
+            "value": "Снять"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Зняти все"
+            "value": "Зняти"
           }
         }
       }
@@ -2039,13 +2039,13 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Выбрать все"
+            "value": "Все"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Вибрати все"
+            "value": "Усі"
           }
         }
       }
@@ -2199,7 +2199,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "★ Найкраще"
+            "value": "★ Краще"
           }
         }
       }

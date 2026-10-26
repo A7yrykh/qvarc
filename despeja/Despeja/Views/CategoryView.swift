@@ -47,6 +47,11 @@ struct CategoryView: View {
                 selected = selectableIDs
                 didPreselect = true
             }
+            // Для снимков App Store показываем экран с уже отмеченными файлами.
+            if !didPreselect && library.isDemo && !category.isGrouped && !selectableIDs.isEmpty {
+                selected = Set(library.items(in: category).prefix(category == .videos ? 3 : 14).map(\.id))
+                didPreselect = true
+            }
         }
     }
 
@@ -115,14 +120,18 @@ struct CategoryView: View {
                     ForEach(items) { item in
                         cell(item, isBest: false)
                             .aspectRatio(1, contentMode: .fit)
-                            .overlay(alignment: .bottomTrailing) {
+                            .overlay(alignment: .bottomLeading) {
                                 if category == .videos {
-                                    Text(Format.bytes(item.bytes))
-                                        .font(.caption2.weight(.bold).monospacedDigit())
-                                        .padding(.horizontal, 5).padding(.vertical, 2)
-                                        .background(.black.opacity(0.55), in: Capsule())
-                                        .foregroundStyle(.white)
-                                        .padding(5)
+                                    VStack(alignment: .leading, spacing: 1) {
+                                        Label(Format.duration(item.duration), systemImage: "video.fill")
+                                        Text(Format.bytes(item.bytes))
+                                    }
+                                    .font(.caption2.weight(.bold).monospacedDigit())
+                                    .lineLimit(1)
+                                    .padding(.horizontal, 6).padding(.vertical, 3)
+                                    .background(.black.opacity(0.55), in: RoundedRectangle(cornerRadius: 6))
+                                    .foregroundStyle(.white)
+                                    .padding(5)
                                 }
                             }
                     }
@@ -134,7 +143,7 @@ struct CategoryView: View {
     }
 
     private func cell(_ item: MediaItem, isBest: Bool) -> some View {
-        Thumbnail(item: item)
+        Thumbnail(item: item, showsInfo: category != .videos)
             .clipShape(RoundedRectangle(cornerRadius: 10))
             .overlay(alignment: .topTrailing) { SelectionBadge(selected: selected.contains(item.id)) }
             .overlay(alignment: .topLeading) {

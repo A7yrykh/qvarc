@@ -57,7 +57,12 @@ enum DemoLibrary {
         let symbols = ["mountain.2.fill", "sun.max.fill", "pawprint.fill", "fork.knife", "beach.umbrella.fill",
                        "figure.walk", "leaf.fill", "building.2.fill", "birthday.cake.fill", "car.fill"]
         if id.hasPrefix("shot") {
-            return ([Color(white: 0.92), Color(white: 0.82)], "text.alignleft")
+            // Снимки экрана: светлые «экраны» разных приложений.
+            let n = Int(id.split(separator: "-").last ?? "0") ?? 0
+            let tints: [Color] = [.blue, .green, .orange, .purple, .pink, .teal, .indigo]
+            let icons = ["message.fill", "map.fill", "ticket.fill", "chart.bar.fill", "cart.fill",
+                         "airplane", "qrcode", "music.note", "envelope.fill", "calendar"]
+            return ([Color(white: 0.97), tints[n % tints.count].opacity(0.35)], icons[(n * 3) % icons.count])
         }
         // Копии одной серии выглядят одинаково: берём номер серии без суффикса.
         let parts = id.split(separator: "-")
