@@ -1,0 +1,87 @@
+{
+  "identifier" : "D5EA1A50",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_locale" : "es_ES",
+    "_storefront" : "ESP"
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "D5EA1A51",
+      "localizations" : [
+
+      ],
+      "name" : "Despeja Pro",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "29.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "D5EA1A52",
+          "introductoryOffer" : {
+            "internalID" : "D5EA1A53",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P3D"
+          },
+          "localizations" : [
+            {
+              "description" : "Borrados sin límite. Renovación anual.",
+              "displayName" : "Despeja Pro anual",
+              "locale" : "es_ES"
+            }
+          ],
+          "productID" : "es.avsyrykh.despeja.pro.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Despeja Pro anual",
+          "subscriptionGroupID" : "D5EA1A51",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "4.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "D5EA1A54",
+          "localizations" : [
+            {
+              "description" : "Borrados sin límite. Renovación semanal.",
+              "displayName" : "Despeja Pro semanal",
+              "locale" : "es_ES"
+            }
+          ],
+          "productID" : "es.avsyrykh.despeja.pro.weekly",
+          "recurringSubscriptionPeriod" : "P1W",
+          "referenceName" : "Despeja Pro semanal",
+          "subscriptionGroupID" : "D5EA1A51",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

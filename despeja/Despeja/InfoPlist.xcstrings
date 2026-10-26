@@ -1,0 +1,37 @@
+{
+  "sourceLanguage": "es",
+  "version": "1.0",
+  "strings": {
+    "CFBundleDisplayName": {
+      "shouldTranslate": false
+    },
+    "NSPhotoLibraryUsageDescription": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Despeja analiza tus fotos y vídeos en el propio iPhone para encontrar duplicados, ráfagas, capturas y vídeos grandes. Nada sale del dispositivo."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Despeja analyses your photos and videos on your iPhone to find duplicates, bursts, screenshots and large videos. Nothing leaves the device."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Despeja анализирует фото и видео прямо на iPhone, чтобы найти дубликаты, серии, скриншоты и большие видео. Ничего не покидает устройство."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Despeja аналізує фото й відео просто на iPhone, щоб знайти дублікати, серії, знімки екрана й великі відео. Ніщо не залишає пристрій."
+          }
+        }
+      }
+    }
+  }
+}
