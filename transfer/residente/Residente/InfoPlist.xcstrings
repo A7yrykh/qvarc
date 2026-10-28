@@ -1,0 +1,151 @@
+{
+  "sourceLanguage": "es",
+  "version": "1.0",
+  "strings": {
+    "CFBundleDisplayName": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Residente"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Residente"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Residente"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Residente"
+          }
+        }
+      }
+    },
+    "NSCameraUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La cámara se usa para escanear tus documentos. Las imágenes se guardan solo en este iPhone."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The camera is used to scan your documents. Images are stored only on this iPhone."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Камера нужна, чтобы сканировать документы. Изображения хранятся только на этом iPhone."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Камера потрібна, щоб сканувати документи. Зображення зберігаються лише на цьому iPhone."
+          }
+        }
+      }
+    },
+    "NSFaceIDUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID protege tus documentos guardados en la app."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID protects the documents saved in the app."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID защищает документы, сохранённые в приложении."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID захищає документи, збережені в застосунку."
+          }
+        }
+      }
+    },
+    "NSLocationWhenInUseUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La ubicación se usa solo para saber en qué país estás y anotar tus días. Solo se guarda el país, en este iPhone."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your location is used only to know which country you are in and log your days. Only the country is saved, on this iPhone."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Геопозиция нужна только чтобы определить страну и записать дни. Сохраняется только страна, на этом iPhone."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Геопозиція потрібна лише щоб визначити країну й записати дні. Зберігається лише країна, на цьому iPhone."
+          }
+        }
+      }
+    },
+    "NSLocationAlwaysAndWhenInUseUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Con el registro automático, la app anota en qué país estás cada día, también en segundo plano, para contar tus días en España, Schengen y ausencias. Solo se guarda el país, en este iPhone."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "With automatic logging on, the app notes which country you are in each day, even in the background, to count your days in Spain, Schengen and time away. Only the country is saved, on this iPhone."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "С автоучётом приложение каждый день отмечает страну, в том числе в фоне, чтобы считать дни в Испании, Шенген и отсутствия. Сохраняется только страна, на этом iPhone."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "З автообліком застосунок щодня позначає країну, зокрема у фоні, щоб рахувати дні в Іспанії, Шенген і відсутності. Зберігається лише країна, на цьому iPhone."
+          }
+        }
+      }
+    }
+  }
+}

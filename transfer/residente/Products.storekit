@@ -1,0 +1,21 @@
+{
+  "identifier" : "4B1D3C2A",
+  "nonRenewingSubscriptions" : [],
+  "products" : [
+    {
+      "displayPrice" : "14.99",
+      "familyShareable" : true,
+      "internalID" : "6E1A2B3C",
+      "localizations" : [
+        { "description" : "Trámites, documentos y días sin límites.", "displayName" : "Residente completo", "locale" : "es_ES" },
+        { "description" : "Unlimited procedures, documents and day tracking.", "displayName" : "Residente completo", "locale" : "en_US" }
+      ],
+      "productID" : "es.avsyrykh.tramites.pro",
+      "referenceName" : "Pro (one-time)",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : { "_storefront" : "ESP" },
+  "subscriptionGroups" : [],
+  "version" : { "major" : 4, "minor" : 0 }
+}
